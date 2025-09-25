@@ -1,18 +1,18 @@
-package de.skyking_px.PhoenixBot;
+package com.mcsmanager.bot;
 
-import de.skyking_px.PhoenixBot.command.CloseCommand;
-import de.skyking_px.PhoenixBot.command.FAQCommand;
-import de.skyking_px.PhoenixBot.command.InfoCommand;
-import de.skyking_px.PhoenixBot.command.TBSCommand;
-import de.skyking_px.PhoenixBot.faq.FaqHandler;
-import de.skyking_px.PhoenixBot.listener.BugReportListener;
-import de.skyking_px.PhoenixBot.listener.SuggestionListener;
-import de.skyking_px.PhoenixBot.listener.SupportListener;
-import de.skyking_px.PhoenixBot.listener.ThreadDeleteListener;
-import de.skyking_px.PhoenixBot.storage.TicketStorage;
-import de.skyking_px.PhoenixBot.storage.VoteStorage;
-import de.skyking_px.PhoenixBot.ticket.Panel;
-import de.skyking_px.PhoenixBot.util.*;
+import com.mcsmanager.bot.command.CloseCommand;
+import com.mcsmanager.bot.command.FAQCommand;
+import com.mcsmanager.bot.command.InfoCommand;
+import com.mcsmanager.bot.faq.FaqHandler;
+import com.mcsmanager.bot.listener.BugReportListener;
+import com.mcsmanager.bot.listener.SuggestionListener;
+import com.mcsmanager.bot.listener.SupportListener;
+import com.mcsmanager.bot.listener.ThreadDeleteListener;
+import com.mcsmanager.bot.util.CloseHandler;
+import com.mcsmanager.bot.util.LogUploader;
+import com.mcsmanager.bot.util.LogUtils;
+import com.mcsmanager.bot.util.Reload;
+import com.mcsmanager.bot.storage.VoteStorage;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -22,20 +22,18 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import java.io.IOException;
 
 /**
- * Main Bot class for the PhoenixBot Discord application.
+ * Main Bot class for the MCSM Discord Bot Discord application.
  * This class initializes the bot, registers event listeners, and configures JDA.
  * 
  * @author SkyKing_PX
  */
 public class Bot {
     /** Current version of the bot */
-    public static final String VERSION = "2.0.0-rc6";
+    public static final String VERSION = "1.0.0";
 
 
     /** Storage for vote data across suggestion forums */
     private static VoteStorage voteStorage;
-    /** Storage for ticket data and tracking */
-    private static TicketStorage ticketStorage;
 
     /**
      * Initializes the storage systems for votes and tickets.
@@ -51,13 +49,6 @@ public class Bot {
             LogUtils.logFatalException("Error initializing vote storage", e);
         }
         LogUtils.logStorage("Initialized", "Vote Storage");
-        LogUtils.logStorage("Initializing...", "Ticket Storage");
-        try {
-            ticketStorage = new TicketStorage();
-        } catch (Exception e) {
-            LogUtils.logFatalException("Error initializing ticket storage", e);
-        }
-        LogUtils.logStorage("Initializing", "Ticket Storage");
     }
 
     /**
@@ -68,18 +59,9 @@ public class Bot {
     public static VoteStorage getVoteStorage() {
         return voteStorage;
     }
-    
-    /**
-     * Gets the ticket storage instance for managing support tickets.
-     * 
-     * @return The ticket storage instance
-     */
-    public static TicketStorage getTicketStorage() {
-        return ticketStorage;
-    }
 
     /**
-     * Main entry point for the PhoenixBot application.
+     * Main entry point for the MCSM Discord Bot application.
      * Initializes storage, configures JDA, and registers all event listeners.
      * 
      * @param args Command line arguments (not used)
@@ -87,10 +69,16 @@ public class Bot {
      */
     public static void main(String[] args) throws Exception {
         initStorage();
+        String activity = "Incorrect Configuration";
+        try {
+            activity = Config.get().getBot().getActivity();
+            activity = activity.replace("{Version}", Bot.VERSION);
+        } catch (Exception e) {
+            LogUtils.logException("Error while getting Bot Activity from Config. It may be corrupt.", e);
+        }
 
         JDA api = JDABuilder.createDefault(Config.get().getBot().getToken())
                 .addEventListeners(
-                        new TBSCommand(),
                         new InfoCommand(),
                         new FAQCommand(),
                         new LogUploader(),
@@ -102,11 +90,9 @@ public class Bot {
                         new CloseHandler(),
                         new FaqHandler(),
                         new Reload(),
-                        new Panel(),
-                        new TicketCloseHandler(),
                         new ThreadDeleteListener())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-                .setActivity(Activity.playing(Config.get().getBot().getActivity()))
+                .setActivity(Activity.playing(activity))
                 .setStatus(OnlineStatus.ONLINE)
                 .build();
     }

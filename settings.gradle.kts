@@ -1,2 +1,2 @@
-rootProject.name = "PhoenixBot"
+rootProject.name = "MCSM-DC-Bot"
 

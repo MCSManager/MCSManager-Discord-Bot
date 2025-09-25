@@ -1,9 +1,9 @@
-package de.skyking_px.PhoenixBot.listener;
+package com.mcsmanager.bot.listener;
 
-import de.skyking_px.PhoenixBot.Bot;
-import de.skyking_px.PhoenixBot.Config;
-import de.skyking_px.PhoenixBot.storage.VoteStorage;
-import de.skyking_px.PhoenixBot.util.LogUtils;
+import com.mcsmanager.bot.Bot;
+import com.mcsmanager.bot.Config;
+import com.mcsmanager.bot.storage.VoteStorage;
+import com.mcsmanager.bot.util.LogUtils;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 

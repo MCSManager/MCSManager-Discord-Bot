@@ -1,8 +1,8 @@
-package de.skyking_px.PhoenixBot.util;
+package com.mcsmanager.bot.util;
 
-import de.skyking_px.PhoenixBot.Bot;
-import de.skyking_px.PhoenixBot.Config;
-import de.skyking_px.PhoenixBot.storage.VoteStorage;
+import com.mcsmanager.bot.Bot;
+import com.mcsmanager.bot.Config;
+import com.mcsmanager.bot.storage.VoteStorage;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -95,10 +95,8 @@ public class CloseHandler extends ListenerAdapter {
                 .findFirst().orElse(null);
 
         if (closedTag == null) {
-            reply.accept(new EmbedBuilder()
+            reply.accept(EmbedUtils.createError()
                     .setDescription("❌ Could not find a 'Closed' tag")
-                    .setColor(Color.RED)
-                    .setFooter("Phoenix Bot | Developed by SkyKing_PX")
                     .build());
             return;
         }
@@ -114,22 +112,19 @@ public class CloseHandler extends ListenerAdapter {
                 .setArchived(true)
                 .queue(
                         success -> {
-                            MessageEmbed successEmbed = new EmbedBuilder()
-                                    .setColor(Color.GREEN)
+                            MessageEmbed successEmbed = EmbedUtils.createSuccess()
                                     .addField("✅ Post Closed", "This post has been successfully closed", false)
-                                    .setFooter("Phoenix Bot | Developed by SkyKing_PX")
                                     .build();
 
                             reply.accept(successEmbed);
 
-                            MessageEmbed logEmbed = new EmbedBuilder()
-                                    .setColor(Color.GREEN)
+                            MessageEmbed logEmbed = EmbedUtils.createSuccess()
                                     .addField("✅ Post Closed",
                                             "Name: " + thread.getName() +
+                                                    "\n Parent: " + thread.getParentChannel().getJumpUrl() +
                                                     "\nLink: " + thread.getJumpUrl() +
                                                     "\nClosed by: " + invoker.getUser().getName(),
                                             false)
-                                    .setFooter("Phoenix Bot | Developed by SkyKing_PX")
                                     .build();
 
                             MessageHandler.logToChannel(guild, logEmbed);
@@ -141,10 +136,8 @@ public class CloseHandler extends ListenerAdapter {
                             }
                         },
                         failure -> {
-                            MessageEmbed failureEmbed = new EmbedBuilder()
+                            MessageEmbed failureEmbed = EmbedUtils.createError()
                                     .setDescription("❌ Failed to close the post.")
-                                    .setColor(Color.RED)
-                                    .setFooter("Phoenix Bot | Developed by SkyKing_PX")
                                     .build();
 
                             reply.accept(failureEmbed);

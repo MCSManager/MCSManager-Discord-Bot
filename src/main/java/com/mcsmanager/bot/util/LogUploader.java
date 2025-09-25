@@ -1,4 +1,4 @@
-package de.skyking_px.PhoenixBot.util;
+package com.mcsmanager.bot.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +45,7 @@ public class LogUploader extends ListenerAdapter {
                 .filter(att -> att.getFileName().endsWith(".log") || att.getFileName().toLowerCase().contains("crash"))
                 .forEach(att -> {
                     try {
-                        File tmp = File.createTempFile("phoenix-log", ".tmp");
+                        File tmp = File.createTempFile("mcsm-log", ".tmp");
                         att.getProxy().downloadToFile(tmp).join();
                         filesToUpload.put(tmp, att.getFileName());
                     } catch (IOException e) {

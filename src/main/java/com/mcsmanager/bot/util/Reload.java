@@ -1,6 +1,6 @@
-package de.skyking_px.PhoenixBot.util;
+package com.mcsmanager.bot.util;
 
-import de.skyking_px.PhoenixBot.Config;
+import com.mcsmanager.bot.Config;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 

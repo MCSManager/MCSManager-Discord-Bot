@@ -1,7 +1,7 @@
-package de.skyking_px.PhoenixBot.util;
+package com.mcsmanager.bot.util;
 
-import de.skyking_px.PhoenixBot.Bot;
-import de.skyking_px.PhoenixBot.Config;
+import com.mcsmanager.bot.Bot;
+import com.mcsmanager.bot.Config;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
@@ -72,7 +72,7 @@ public class EmbedUtils {
         try {
             FOOTER_TEXT = Config.get().getEmbeds().getFooterText();
             /** Replace {Version} placeholder with bot version */
-            FOOTER_TEXT.replace("{Version}", Bot.VERSION);
+            FOOTER_TEXT = FOOTER_TEXT.replace("{Version}", Bot.VERSION);
         } catch (IOException e) {
             LogUtils.logException("Error while getting footer text", e);
         }
@@ -86,6 +86,16 @@ public class EmbedUtils {
     public static EmbedBuilder createDefault() {
         return new EmbedBuilder()
                 .setColor(DEFAULT_COLOR)
+                .setFooter(FOOTER_TEXT);
+    }
+
+    /**
+     * Creates a basic embed with the default bot styling.
+     *
+     * @return EmbedBuilder with default color and footer
+     */
+    public static EmbedBuilder createFooter() {
+        return new EmbedBuilder()
                 .setFooter(FOOTER_TEXT);
     }
     

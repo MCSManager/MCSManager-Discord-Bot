@@ -1,10 +1,10 @@
-package de.skyking_px.PhoenixBot.listener;
+package com.mcsmanager.bot.listener;
 
-import de.skyking_px.PhoenixBot.Config;
-import de.skyking_px.PhoenixBot.storage.VoteStorage;
-import de.skyking_px.PhoenixBot.util.EmbedUtils;
-import de.skyking_px.PhoenixBot.util.LogUtils;
-import de.skyking_px.PhoenixBot.util.MessageHandler;
+import com.mcsmanager.bot.Config;
+import com.mcsmanager.bot.storage.VoteStorage;
+import com.mcsmanager.bot.util.EmbedUtils;
+import com.mcsmanager.bot.util.LogUtils;
+import com.mcsmanager.bot.util.MessageHandler;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
@@ -68,7 +68,7 @@ public class SuggestionListener extends ListenerAdapter {
         }
 
         MessageEmbed embed = EmbedUtils.createSuccess()
-                .addField("Vote for this Feature", "You are able to vote either **for** or **against** this feature.\nCast your vote below!", false)
+                .addField("Vote for this Feature", "You are able to vote either **for** or **against** this feature.\nCast your vote below!\n\n> Note: This only improves the chances of this request being **prioritised**. It can still get denied because of various reasons.", false)
                 .build();
 
         event.getChannel().asThreadChannel().sendMessageEmbeds(embed)

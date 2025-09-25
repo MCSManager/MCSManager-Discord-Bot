@@ -1,4 +1,4 @@
-package de.skyking_px.PhoenixBot.storage;
+package com.mcsmanager.bot.storage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

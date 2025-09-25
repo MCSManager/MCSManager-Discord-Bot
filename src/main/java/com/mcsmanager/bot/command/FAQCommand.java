@@ -1,7 +1,9 @@
-package de.skyking_px.PhoenixBot.command;
+package com.mcsmanager.bot.command;
 
-import de.skyking_px.PhoenixBot.util.EmbedUtils;
-import de.skyking_px.PhoenixBot.util.MessageHandler;
+import com.mcsmanager.bot.Config;
+import com.mcsmanager.bot.util.EmbedUtils;
+import com.mcsmanager.bot.util.LogUtils;
+import com.mcsmanager.bot.util.MessageHandler;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -23,9 +25,13 @@ public class FAQCommand extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if (!event.getName().equals("faq")) return;
             event.deferReply().queue();
-            MessageEmbed embed = EmbedUtils.createDefault()
-                    .addField("Frequently Asked Questions", "You can find the FAQ here: <#1358722002835341423>\nIt contains much information that you should read before asking for help.", false)
-                    .build();
-            MessageHandler.sendPreparedMessage(event, embed);
+            try {
+                MessageEmbed embed = EmbedUtils.createDefault()
+                        .addField("Frequently Asked Questions", "You can find the FAQ here: <#" + Config.get().getFaq().getFaq_channel_id() + ">\nIt contains much information that you should read before asking for help.", false)
+                        .build();
+                MessageHandler.sendPreparedMessage(event, embed);
+            } catch (Exception e) {
+                LogUtils.logException("Failed to get FAQ Channel ID", e);
+            }
     }
 }

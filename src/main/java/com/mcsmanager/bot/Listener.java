@@ -1,8 +1,7 @@
-package de.skyking_px.PhoenixBot;
+package com.mcsmanager.bot;
 
-import de.skyking_px.PhoenixBot.command.CommandRegistry;
-import de.skyking_px.PhoenixBot.ticket.Panel;
-import de.skyking_px.PhoenixBot.util.LogUtils;
+import com.mcsmanager.bot.command.CommandRegistry;
+import com.mcsmanager.bot.util.LogUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -11,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Instant;
 
 /**
- * Main event listener for the PhoenixBot.
+ * Main event listener for the MCSM Discord Bot.
  * Handles bot initialization, command registration, and startup tasks.
  * 
  * @author SkyKing_PX
@@ -38,10 +37,6 @@ public class Listener extends ListenerAdapter {
 
         try {
             Bot.initStorage();
-
-            LogUtils.logInfo("Restoring pending tickets...");
-            Panel.restorePendingTickets(api);
-            LogUtils.logInfo("Pending tickets restored.");
         } catch (Exception e) {
             LogUtils.logFatalException(api, "An Error occurred while trying to initialize storage!", e);
         }

@@ -1,7 +1,7 @@
-package de.skyking_px.PhoenixBot;
+package com.mcsmanager.bot;
 
-import de.skyking_px.PhoenixBot.faq.FaqEntry;
-import de.skyking_px.PhoenixBot.util.LogUtils;
+import com.mcsmanager.bot.faq.FaqEntry;
+import com.mcsmanager.bot.util.LogUtils;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Configuration management class for the PhoenixBot application.
+ * Configuration management class for the MCSM Discord Bot application.
  * Uses YAML format for configuration storage with automatic default generation.
  * Implements singleton pattern for global configuration access.
  * 
@@ -39,8 +39,6 @@ public class Config {
     private Support support;
     /** FAQ system configuration */
     private Faq faq;
-    /** Ticket system configuration */
-    private Tickets tickets;
     /** Embed system configuration */
     private Embeds embeds;
 
@@ -83,7 +81,6 @@ public class Config {
             this.bugReport = loaded.bugReport;
             this.support = loaded.support;
             this.faq = loaded.faq;
-            this.tickets = loaded.tickets;
             this.embeds = loaded.embeds;
         }
     }
@@ -113,39 +110,36 @@ public class Config {
               guild_id: "YOUR_DISCORD_GUILD_ID"
 
             logging:
-              logChannelId: "1353805483428937738"
-              fatalLogChannelId: "1119148633409986562"
+              logChannelId: "0000000000000000000"
+              fatalLogChannelId: "0000000000000000000"
 
             voting:
-              suggestions_forum_id: "1347456623576092764"
+              suggestions_forum_id: "0000000000000000000"
             
             support:
-              support_forum_id: "1347289412060582031"
+              support_forum_id: "0000000000000000000"
             
             bugReport:
-              bugReport_forum_id: "1349267451883556894"
+              bugReport_forum_id: "0000000000000000000"
             
             roles:
-              moderators: ["1123224840426500228"]
+              moderators: ["0000000000000000000"]
               
             faq:
-              faq_channel_id: "1347477305806557196"
+              faq_channel_id: "0000000000000000000"
               faq_entries:
                 - question: "Q: ?"
                   answer: "**A:** ."
                   imageUrl: ""
                   thumbnailUrl: ""
-                  
-            tickets:
-              pingRoles: ["1416379517928476773", "1123224748571238430"]
               
             embeds:
-              defaultColor: "#2073cb"
+              defaultColor: "#454040"
               successColor: "#00ff33"
               errorColor: "#ff0000"
               warningColor: "#ff9900"
               infoColor: "#ffcc33"
-              footerText: "Phoenix Bot | Developed by SkyKing_PX"
+              footerText: "MCSManager Bot | Version {Version}"
             """;
 
         Files.writeString(CONFIG_PATH, defaultConfig);
@@ -188,11 +182,6 @@ public class Config {
     public Faq getFaq() { return faq; }
     /** @param faq FAQ configuration to set */
     public void setFaq(Faq faq) { this.faq = faq; }
-
-    /** @return Ticket system configuration */
-    public Tickets getTickets() { return tickets; }
-    /** @param tickets Ticket configuration to set */
-    public void setTickets(Tickets tickets) { this.tickets = tickets; }
 
     /** @return Embed system configuration */
     public Embeds getEmbeds() { return embeds; }
@@ -306,18 +295,6 @@ public class Config {
         public FaqEntry[] getFaq_entries() { return faq_entries; }
         /** @param faq_entries Array of FAQ entries to set */
         public void setFaq_entries(FaqEntry[] faq_entries) { this.faq_entries = faq_entries; }
-    }
-
-    /**
-     * Ticket system configuration.
-     */
-    public static class Tickets {
-        /** Array of Discord role IDs to ping when tickets are created */
-        private String[] pingRoles;
-        /** @return Array of role IDs to ping for tickets */
-        public String[] getPingRoles() { return pingRoles; }
-        /** @param pingRoles Array of role IDs to set for ticket pings */
-        public void setPingRoles(String[] pingRoles) { this.pingRoles = pingRoles; }
     }
 
     /**

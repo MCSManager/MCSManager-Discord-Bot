@@ -1,9 +1,9 @@
-package de.skyking_px.PhoenixBot.command;
+package com.mcsmanager.bot.command;
 
-import de.skyking_px.PhoenixBot.Bot;
-import de.skyking_px.PhoenixBot.Listener;
-import de.skyking_px.PhoenixBot.util.EmbedUtils;
-import de.skyking_px.PhoenixBot.util.MessageHandler;
+import com.mcsmanager.bot.Bot;
+import com.mcsmanager.bot.Listener;
+import com.mcsmanager.bot.util.EmbedUtils;
+import com.mcsmanager.bot.util.MessageHandler;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -36,9 +36,9 @@ public class InfoCommand extends ListenerAdapter {
         long remainingSeconds = seconds % 60;
 
         MessageEmbed embed = EmbedUtils.createDefault()
-                .setTitle("Phoenix Bot")
-                .setThumbnail("https://cdn.discordapp.com/avatars/1347561107744882781/129c785aad035070d8d19d4addc258eb.webp?size=1024")
-                .addField("General Information", "**Bot Version:** `" + Bot.VERSION + "`\n**Uptime:** " + hours + "h " + minutes + "min " + remainingSeconds + "sec" + "\n**Follows Lost World Modpack Version:** `3.0.0+`", false)
+                .setTitle("MCSManager Bot")
+                .setThumbnail("https://cdn.discordapp.com/avatars/1418568057755930745/ccc107fadae2d4627054b0b2f8992e51.webp?size=1024")
+                .addField("General Information", "**Bot Version:** `" + Bot.VERSION + "`\n**Uptime:** " + hours + "h " + minutes + "min " + remainingSeconds + "sec", false)
                 .build();
         MessageHandler.sendPreparedMessage(event, embed);
 

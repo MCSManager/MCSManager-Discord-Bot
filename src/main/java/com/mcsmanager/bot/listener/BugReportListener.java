@@ -1,9 +1,9 @@
-package de.skyking_px.PhoenixBot.listener;
+package com.mcsmanager.bot.listener;
 
-import de.skyking_px.PhoenixBot.Config;
-import de.skyking_px.PhoenixBot.util.CloseHandler;
-import de.skyking_px.PhoenixBot.util.EmbedUtils;
-import de.skyking_px.PhoenixBot.util.LogUtils;
+import com.mcsmanager.bot.Config;
+import com.mcsmanager.bot.util.CloseHandler;
+import com.mcsmanager.bot.util.EmbedUtils;
+import com.mcsmanager.bot.util.LogUtils;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;

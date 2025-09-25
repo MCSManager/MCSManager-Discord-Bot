@@ -1,4 +1,4 @@
-package de.skyking_px.PhoenixBot.faq;
+package com.mcsmanager.bot.faq;
 
 /**
  * Data model for FAQ entries loaded from configuration.

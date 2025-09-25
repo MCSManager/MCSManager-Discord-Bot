@@ -4,9 +4,9 @@ plugins {
     id("com.gradleup.shadow") version "8.3.1"
 }
 
-application.mainClass = "de.skyking_px.PhoenixBot.Bot"
-group = "de.skyking_px"
-version = "2.0.0-rc6"
+application.mainClass = "com.mcsmanager.bot.Bot"
+group = "com.mcsmanager"
+version = "1.0.0"
 
 repositories {
     mavenCentral()

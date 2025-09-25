@@ -175,7 +175,6 @@ public class CloseHandler extends ListenerAdapter {
 
             try {
                 closeThread(thread, member, guild, embed -> {
-                    // Nachricht mit dem Ergebnis editieren
                     event.getHook().editOriginalEmbeds(embed).setComponents().queue();
                 });
             } catch (IOException e) {

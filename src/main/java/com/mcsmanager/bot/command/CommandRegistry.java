@@ -34,9 +34,6 @@ public class CommandRegistry {
 
         CommandData reload = Commands.slash("reloadconfig", "Reloads the bot's configuration");
 
-        CommandData createTicketPanel = Commands.slash("createticketpanel", "Creates a ticket panel in a specified channel")
-                .addOptions(new OptionData(OptionType.CHANNEL, "channel", "The channel where the ticket panel should be created", true));
-
-        return List.of(faq, info, close, sendFaq, reload, createTicketPanel);
+        return List.of(faq, info, close, sendFaq, reload);
     }
 }

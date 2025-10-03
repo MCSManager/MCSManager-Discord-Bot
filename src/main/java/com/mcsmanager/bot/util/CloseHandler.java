@@ -76,16 +76,10 @@ public class CloseHandler extends ListenerAdapter {
             return;
         }
 
-        boolean isOwner = userId.equals(threadOwnerId);
-        boolean isModerator = false;
-        for (String id : modRoleIds){
-            if (invoker.getRoles().stream().anyMatch(r -> r.getId().equals(id))) {
-                isModerator = true;
-                break;
-            }
-        }
+        boolean isOwner = invoker.getId().equals(postOwnerId);
+        boolean isModerator = invoker.getRoles().stream().map(Role::getId).anyMatch(modRoleIds::contains);
 
-        if (!isOwner || !isModerator) {
+        if (!isOwner && !isModerator) {
             reply.accept(EmbedUtils.createSimpleError("❌ Only the post creator or a moderator can close this post."));
             return;
         }

@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
@@ -66,7 +67,6 @@ public class CloseHandler extends ListenerAdapter {
         ForumChannel parent = thread.getParentChannel().asForumChannel();
 
         String threadOwnerId = thread.getOwnerId();
-        String userId = invoker.getId();
         String[] modRoleIds;
         try {
             modRoleIds = Config.get().getRoles().getModerators();
@@ -76,8 +76,10 @@ public class CloseHandler extends ListenerAdapter {
             return;
         }
 
-        boolean isOwner = invoker.getId().equals(postOwnerId);
-        boolean isModerator = invoker.getRoles().stream().map(Role::getId).anyMatch(modRoleIds::contains);
+        boolean isOwner = invoker.getId().equals(threadOwnerId);
+        List<String> modRolesList = List.of(modRoleIds);
+        boolean isModerator = invoker.getRoles().stream()
+                .anyMatch(role -> modRolesList.contains(role.getId()));
 
         if (!isOwner && !isModerator) {
             reply.accept(EmbedUtils.createSimpleError("❌ Only the post creator or a moderator can close this post."));

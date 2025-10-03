@@ -85,7 +85,7 @@ public class CloseHandler extends ListenerAdapter {
             }
         }
 
-        if (!isOwner && !isModerator) {
+        if (!isOwner || !isModerator) {
             reply.accept(EmbedUtils.createSimpleError("❌ Only the post creator or a moderator can close this post."));
             return;
         }

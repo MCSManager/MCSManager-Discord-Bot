@@ -1,0 +1,45 @@
+name: Build and Upload JDA Bot
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout Repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Java
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # 3. Cache Gradle
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 4. Build ShadowJar
+      - name: Build with Gradle ShadowJar
+        run: ./gradlew shadowJar
+
+      # 5. Upload Artifact
+      - name: Upload Bot JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: jda-bot-jar
+          path: build/libs/*-all.jar

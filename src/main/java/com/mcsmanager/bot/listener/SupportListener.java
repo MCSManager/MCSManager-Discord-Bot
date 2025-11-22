@@ -4,6 +4,8 @@ import com.mcsmanager.bot.Config;
 import com.mcsmanager.bot.util.CloseHandler;
 import com.mcsmanager.bot.util.EmbedUtils;
 import com.mcsmanager.bot.util.LogUtils;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -13,7 +15,6 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -52,9 +53,9 @@ public class SupportListener extends ListenerAdapter {
                 .build();
 
         event.getChannel().asThreadChannel().sendMessageEmbeds(embed)
-                .addActionRow(
+                .addComponents(ActionRow.of(
                         Button.success("support:close:" + event.getChannel().getId(), "Close").withEmoji(Emoji.fromUnicode("✅"))
-                ).queue();
+                )).queue();
     }
 
     /**

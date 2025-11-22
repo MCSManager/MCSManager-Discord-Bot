@@ -4,16 +4,16 @@ import com.mcsmanager.bot.Bot;
 import com.mcsmanager.bot.Config;
 import com.mcsmanager.bot.storage.VoteStorage;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 import java.awt.*;
@@ -45,11 +45,11 @@ public class CloseHandler extends ListenerAdapter {
         MessageEmbed confirmation = EmbedUtils.createConfirmation("Are you sure you want to close this post?",
                 "You won't be able to contact anyone through this post anymore and it will be archived permanently.");
 
-        Button confirmButton = Button.success("close_confirm:" + thread.getId(), "✅ Confirm");
-        Button cancelButton = Button.danger("close_cancel:" + thread.getId(), "❌ Cancel");
+        net.dv8tion.jda.api.components.buttons.Button confirmButton = net.dv8tion.jda.api.components.buttons.Button.success("close_confirm:" + thread.getId(), "✅ Confirm");
+        net.dv8tion.jda.api.components.buttons.Button cancelButton = Button.danger("close_cancel:" + thread.getId(), "❌ Cancel");
 
         hook.sendMessageEmbeds(confirmation)
-                .addActionRow(confirmButton, cancelButton)
+                .addComponents(ActionRow.of(confirmButton, cancelButton))
                 .setEphemeral(true)
                 .queue();
     }

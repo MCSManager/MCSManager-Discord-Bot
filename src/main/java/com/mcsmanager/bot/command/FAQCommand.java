@@ -27,7 +27,7 @@ public class FAQCommand extends ListenerAdapter {
             event.deferReply().queue();
             try {
                 MessageEmbed embed = EmbedUtils.createDefault()
-                        .addField("Frequently Asked Questions", "You can find the FAQ here: <#" + Config.get().getFaq().getFaq_channel_id() + ">\nIt contains much information that you should read before asking for help.", false)
+                        .addField("Frequently Asked Questions", "You can find the FAQ here: <#" + Config.get().getFaq().getFaq_channel_id() + ">\nIt contains information and documentations that you should read before asking for help.", false)
                         .build();
                 MessageHandler.sendPreparedMessage(event, embed);
             } catch (Exception e) {

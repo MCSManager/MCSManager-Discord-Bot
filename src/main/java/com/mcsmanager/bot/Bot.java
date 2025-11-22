@@ -29,7 +29,7 @@ import java.io.IOException;
  */
 public class Bot {
     /** Current version of the bot */
-    public static final String VERSION = "1.0.2";
+    public static final String VERSION = "1.1.0";
 
 
     /** Storage for vote data across suggestion forums */

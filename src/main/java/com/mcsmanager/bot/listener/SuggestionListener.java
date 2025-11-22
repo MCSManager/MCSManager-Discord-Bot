@@ -5,6 +5,8 @@ import com.mcsmanager.bot.storage.VoteStorage;
 import com.mcsmanager.bot.util.EmbedUtils;
 import com.mcsmanager.bot.util.LogUtils;
 import com.mcsmanager.bot.util.MessageHandler;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
@@ -13,11 +15,11 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Event listener for suggestion forum thread management.
@@ -71,11 +73,14 @@ public class SuggestionListener extends ListenerAdapter {
                 .addField("Vote for this Feature", "You are able to vote either **for** or **against** this feature.\nCast your vote below!\n\n> Note: This only improves the chances of this request being **prioritised**. It can still get denied because of various reasons.", false)
                 .build();
 
-        event.getChannel().asThreadChannel().sendMessageEmbeds(embed)
-                .addActionRow(
-                        Button.success("vote:up:" + event.getChannel().getId(), "Upvote").withEmoji(Emoji.fromUnicode("👍")),
-                        Button.danger("vote:down:" + event.getChannel().getId(), "Downvote").withEmoji(Emoji.fromUnicode("👎"))
-                ).queue();
+        // Slight delay to ensure thread is fully ready
+        event.getJDA().getRateLimitPool().schedule(() -> {
+            event.getChannel().asThreadChannel().sendMessageEmbeds(embed)
+                    .addComponents(ActionRow.of(
+                            Button.success("vote:up:" + event.getChannel().getId(), "Upvote").withEmoji(Emoji.fromUnicode("👍")),
+                            Button.danger("vote:down:" + event.getChannel().getId(), "Downvote").withEmoji(Emoji.fromUnicode("👎"))
+                    )).queue();
+        }, 2, TimeUnit.SECONDS);
     }
 
     /** In-memory cache of upvotes per thread */
@@ -163,11 +168,10 @@ public class SuggestionListener extends ListenerAdapter {
                     .build();
 
             event.getMessage().editMessageEmbeds(edited)
-                    .setActionRow(
+                    .setComponents(ActionRow.of(
                             Button.success("vote:up:" + event.getChannel().getId(), "Upvote").withEmoji(Emoji.fromUnicode("👍")),
                             Button.danger("vote:down:" + event.getChannel().getId(), "Downvote").withEmoji(Emoji.fromUnicode("👎"))
-                    )
-                    .queue();
+                    )).queue();
 
         } catch (Exception e) {
             LogUtils.logException("Failed to process vote", userId, e);

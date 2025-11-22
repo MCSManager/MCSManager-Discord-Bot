@@ -2,10 +2,11 @@ package com.mcsmanager.bot.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -127,7 +128,7 @@ public class LogUploader extends ListenerAdapter {
         if (buttons.isEmpty()) {
             placeholder.editMessageEmbeds(success.build()).queue();
         } else {
-            placeholder.editMessageEmbeds(success.build()).setActionRow(buttons).queue();
+            placeholder.editMessageEmbeds(success.build()).setComponents(ActionRow.of(buttons)).queue();
         }
     }
 

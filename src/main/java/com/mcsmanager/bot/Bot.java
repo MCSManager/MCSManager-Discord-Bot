@@ -32,7 +32,7 @@ import java.io.IOException;
  */
 public class Bot {
     /** Current version of the bot */
-    public static final String VERSION = "1.3.0-beta";
+    public static final String VERSION = "1.3.0";
 
     /** Static JDA instance for accessing the bot from anywhere */
     private static JDA jda;

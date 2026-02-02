@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 import java.util.List;
 
@@ -34,6 +35,26 @@ public class CommandRegistry {
 
         CommandData reload = Commands.slash("reloadconfig", "Reloads the bot's configuration");
 
-        return List.of(faq, info, close, sendFaq, reload);
+        CommandData shortcut = Commands.slash("shortcut", "Manage and execute shortcuts")
+            .addSubcommands(
+                new SubcommandData("add", "Add a new shortcut")
+                    .addOptions(
+                        new OptionData(OptionType.STRING, "id", "Unique ID for the shortcut (used to execute it)", true),
+                        new OptionData(OptionType.STRING, "description", "Description of what this shortcut does", true),
+                        new OptionData(OptionType.STRING, "title", "Title of the embed message", true),
+                        new OptionData(OptionType.STRING, "message", "Description text of the embed message", true)
+                    ),
+                new SubcommandData("remove", "Remove a shortcut")
+                    .addOptions(
+                        new OptionData(OptionType.STRING, "id", "ID of the shortcut to remove", true)
+                    ),
+                new SubcommandData("execute", "Execute a shortcut")
+                    .addOptions(
+                        new OptionData(OptionType.STRING, "id", "ID of the shortcut to execute", true)
+                    ),
+                new SubcommandData("list", "List all available shortcuts")
+            );
+
+        return List.of(faq, info, close, sendFaq, reload, shortcut);
     }
 }

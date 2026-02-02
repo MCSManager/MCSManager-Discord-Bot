@@ -3,11 +3,13 @@ package com.mcsmanager.bot;
 import com.mcsmanager.bot.command.CloseCommand;
 import com.mcsmanager.bot.command.FAQCommand;
 import com.mcsmanager.bot.command.InfoCommand;
+import com.mcsmanager.bot.command.ShortcutCommand;
 import com.mcsmanager.bot.faq.FaqHandler;
 import com.mcsmanager.bot.listener.BugReportListener;
 import com.mcsmanager.bot.listener.SuggestionListener;
 import com.mcsmanager.bot.listener.SupportListener;
 import com.mcsmanager.bot.listener.ThreadDeleteListener;
+import com.mcsmanager.bot.shortcuts.ShortcutStorage;
 import com.mcsmanager.bot.util.CloseHandler;
 import com.mcsmanager.bot.util.InactivityChecker;
 import com.mcsmanager.bot.util.LogUploader;
@@ -30,7 +32,7 @@ import java.io.IOException;
  */
 public class Bot {
     /** Current version of the bot */
-    public static final String VERSION = "1.2.0";
+    public static final String VERSION = "1.3.0-beta";
 
     /** Static JDA instance for accessing the bot from anywhere */
     private static JDA jda;
@@ -41,8 +43,6 @@ public class Bot {
     /**
      * Initializes the storage systems for votes and tickets.
      * This method must be called before accessing any storage-related functionality.
-     * 
-     * @throws IOException If there is an error initializing the storage files
      */
     public static void initStorage() {
         LogUtils.logStorage("Initializing...", "Vote Storage");
@@ -52,6 +52,14 @@ public class Bot {
             LogUtils.logFatalException("Error initializing vote storage", e);
         }
         LogUtils.logStorage("Initialized", "Vote Storage");
+
+        LogUtils.logStorage("Initializing...", "Shortcut Storage");
+        try {
+            ShortcutStorage.load();
+        } catch (Exception e) {
+            LogUtils.logException("Error initializing shortcut storage", e);
+        }
+        LogUtils.logStorage("Initialized", "Shortcut Storage");
     }
 
     /**
@@ -96,6 +104,7 @@ public class Bot {
                         new LogUploader(),
                         new Listener(),
                         new CloseCommand(),
+                        new ShortcutCommand(),
                         new SuggestionListener(Bot.getVoteStorage()),
                         new BugReportListener(),
                         new SupportListener(),

@@ -6,7 +6,7 @@ plugins {
 
 application.mainClass = "com.mcsmanager.bot.Bot"
 group = "com.mcsmanager"
-version = "1.2.0"
+version = "1.3.0"
 
 repositories {
     mavenCentral()

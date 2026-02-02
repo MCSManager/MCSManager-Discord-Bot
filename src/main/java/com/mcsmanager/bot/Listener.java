@@ -1,6 +1,7 @@
 package com.mcsmanager.bot;
 
 import com.mcsmanager.bot.command.CommandRegistry;
+import com.mcsmanager.bot.util.InactivityChecker;
 import com.mcsmanager.bot.util.LogUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -8,6 +9,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
+import java.util.TimerTask;
 
 /**
  * Main event listener for the MCSM Discord Bot.
@@ -43,5 +45,17 @@ public class Listener extends ListenerAdapter {
 
         START_TIME = Instant.now();
         LogUtils.logInfo("Bot is ready.");
+
+        InactivityChecker.start(api);
+
+        // Delay initial check to allow JDA to fully connect
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000);
+                InactivityChecker.checkInactiveThreads();
+            } catch (Exception e) {
+                LogUtils.logException("Error during initial inactivity check", e);
+            }
+        }).start();
     }
 }

@@ -9,6 +9,7 @@ import com.mcsmanager.bot.listener.SuggestionListener;
 import com.mcsmanager.bot.listener.SupportListener;
 import com.mcsmanager.bot.listener.ThreadDeleteListener;
 import com.mcsmanager.bot.util.CloseHandler;
+import com.mcsmanager.bot.util.InactivityChecker;
 import com.mcsmanager.bot.util.LogUploader;
 import com.mcsmanager.bot.util.LogUtils;
 import com.mcsmanager.bot.util.Reload;
@@ -29,8 +30,10 @@ import java.io.IOException;
  */
 public class Bot {
     /** Current version of the bot */
-    public static final String VERSION = "1.1.0";
+    public static final String VERSION = "1.2.0";
 
+    /** Static JDA instance for accessing the bot from anywhere */
+    private static JDA jda;
 
     /** Storage for vote data across suggestion forums */
     private static VoteStorage voteStorage;
@@ -61,6 +64,15 @@ public class Bot {
     }
 
     /**
+     * Gets the JDA instance for the bot.
+     *
+     * @return The JDA instance
+     */
+    public static JDA getJDA() {
+        return jda;
+    }
+
+    /**
      * Main entry point for the MCSM Discord Bot application.
      * Initializes storage, configures JDA, and registers all event listeners.
      * 
@@ -77,7 +89,7 @@ public class Bot {
             LogUtils.logException("Error while getting Bot Activity from Config. It may be corrupt.", e);
         }
 
-        JDA api = JDABuilder.createDefault(Config.get().getBot().getToken())
+        jda = JDABuilder.createDefault(Config.get().getBot().getToken())
                 .addEventListeners(
                         new InfoCommand(),
                         new FAQCommand(),
@@ -90,10 +102,14 @@ public class Bot {
                         new CloseHandler(),
                         new FaqHandler(),
                         new Reload(),
-                        new ThreadDeleteListener())
+                        new ThreadDeleteListener(),
+                        new InactivityChecker())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .setActivity(Activity.playing(activity))
                 .setStatus(OnlineStatus.ONLINE)
                 .build();
+
+        // Start the inactivity checker after JDA is built
+        InactivityChecker.start(jda);
     }
 }

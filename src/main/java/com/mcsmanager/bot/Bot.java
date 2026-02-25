@@ -1,6 +1,7 @@
 package com.mcsmanager.bot;
 
 import com.mcsmanager.bot.command.CloseCommand;
+import com.mcsmanager.bot.command.PurgeCommand;
 import com.mcsmanager.bot.command.FAQCommand;
 import com.mcsmanager.bot.command.InfoCommand;
 import com.mcsmanager.bot.command.ShortcutCommand;
@@ -22,8 +23,6 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
-import java.io.IOException;
-
 /**
  * Main Bot class for the MCSM Discord Bot Discord application.
  * This class initializes the bot, registers event listeners, and configures JDA.
@@ -32,7 +31,7 @@ import java.io.IOException;
  */
 public class Bot {
     /** Current version of the bot */
-    public static final String VERSION = "1.3.0";
+    public static final String VERSION = "1.4.0";
 
     /** Static JDA instance for accessing the bot from anywhere */
     private static JDA jda;
@@ -104,6 +103,7 @@ public class Bot {
                         new LogUploader(),
                         new Listener(),
                         new CloseCommand(),
+                        new PurgeCommand(),
                         new ShortcutCommand(),
                         new SuggestionListener(Bot.getVoteStorage()),
                         new BugReportListener(),

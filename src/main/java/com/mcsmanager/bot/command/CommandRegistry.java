@@ -1,6 +1,5 @@
 package com.mcsmanager.bot.command;
 
-import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -55,6 +54,14 @@ public class CommandRegistry {
                 new SubcommandData("list", "List all available shortcuts")
             );
 
-        return List.of(faq, info, close, sendFaq, reload, shortcut);
+        CommandData deleteMessages = Commands.slash("purge", "Deletes all messages from a user (optional: from last n days)")
+            .addOptions(
+                new OptionData(OptionType.USER, "user", "The user whose messages to delete", true),
+                new OptionData(OptionType.INTEGER, "days", "Delete messages from the last n days (optional, don't provide to delete all messages)", false),
+                new OptionData(OptionType.CHANNEL, "channel", "Only scan this specific channel (optional, scans entire server by default)", false),
+                new OptionData(OptionType.INTEGER, "count", "Maximum number of messages to delete (optional, no limit by default)", false)
+            );
+
+        return List.of(faq, info, close, sendFaq, reload, shortcut, deleteMessages);
     }
 }

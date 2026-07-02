@@ -31,7 +31,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
  */
 public class Bot {
     /** Current version of the bot */
-    public static final String VERSION = "1.4.0";
+    public static final String VERSION = "1.5.0";
 
     /** Static JDA instance for accessing the bot from anywhere */
     private static JDA jda;

@@ -102,6 +102,15 @@ public class CloseHandler extends ListenerAdapter {
             updatedTags.add(closedTag);
         }
 
+        // Create and send confirmation message visible to everyone
+        MessageEmbed confirmationEmbed = EmbedUtils.createSuccess()
+            .addField("✅ Post Closed",
+                "This post has been closed and locked by " + invoker.getUser().getAsMention() + ".",
+                false)
+            .build();
+
+        thread.sendMessageEmbeds(confirmationEmbed).queue();
+
         thread.getManager()
                 .setAppliedTags(updatedTags)
                 .setLocked(true)

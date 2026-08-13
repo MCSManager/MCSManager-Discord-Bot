@@ -19,21 +19,23 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Event listener for automatically uploading log files and crash reports.
  * Detects .log files and crash reports in messages and uploads them to mclo.gs.
- * 
+ *
  * @author SkyKing_PX
  */
 public class LogUploader extends ListenerAdapter {
 
     /**
      * Handles message received events to detect and upload log files.
-     * 
+     *
      * @param event The message received event
      */
     @Override
@@ -43,38 +45,41 @@ public class LogUploader extends ListenerAdapter {
         // Collect all attachments we want to handle
         Map<File, String> filesToUpload = new HashMap<>();
         event.getMessage().getAttachments().stream()
-                .filter(att -> att.getFileName().endsWith(".log") || att.getFileName().toLowerCase().contains("crash"))
-                .forEach(att -> {
-                    try {
-                        File tmp = File.createTempFile("mcsm-log", ".tmp");
-                        att.getProxy().downloadToFile(tmp).join();
-                        filesToUpload.put(tmp, att.getFileName());
-                    } catch (IOException e) {
-                        event.getChannel().sendMessage("❌ Couldn't save " + att.getFileName() + ".").queue();
-                    }
-                });
+            .filter(att -> att.getFileName().endsWith(".log") || att.getFileName().toLowerCase().contains("crash"))
+            .forEach(att -> {
+                try {
+                    File tmp = File.createTempFile("mcsm-log", ".tmp");
+                    att.getProxy().downloadToFile(tmp).join();
+                    filesToUpload.put(tmp, att.getFileName());
+                } catch (IOException e) {
+                    LogUtils.logException("Failed to download attachment " + att.getFileName(), e);
+                    event.getChannel().sendMessage("❌ Couldn't save " + att.getFileName() + ".").queue();
+                }
+            });
 
         if (filesToUpload.isEmpty()) return;
+        LogUtils.logInfo("Detected log attachments for upload", "user=" + event.getAuthor().getId() + ", files=" + filesToUpload.size());
 
         // 1) send placeholder message
         var loading = EmbedUtils.createDefault()
-                .setTitle("⏳ Uploading Logs …")
-                .setDescription("Please be patient.")
-                .setTimestamp(Instant.now());
+            .setTitle("⏳ Uploading Logs …")
+            .setDescription("Please be patient.")
+            .setTimestamp(Instant.now());
 
         event.getChannel().sendMessageEmbeds(loading.build()).queue(placeholder ->
-                // 2) run IO heavy work asynchronously so we don't block the gateway thread
-                CompletableFuture.supplyAsync(() -> uploadAll(filesToUpload))
-                        .thenAccept(result -> editSuccess(placeholder, result, filesToUpload))
-                        .exceptionally(ex -> { // any unhandled exception ends up here
-                            editFailure(placeholder, ex);
-                            return null;
-                        }));
+            // 2) run IO heavy work asynchronously so we don't block the gateway thread
+            CompletableFuture.supplyAsync(() -> uploadAll(filesToUpload))
+                .thenAccept(result -> editSuccess(placeholder, result, filesToUpload))
+                .exceptionally(ex -> { // any unhandled exception ends up here
+                    LogUtils.logException("Log upload failed", ex);
+                    editFailure(placeholder, ex);
+                    return null;
+                }));
     }
 
     /**
      * Uploads all log files to mclo.gs and returns the URLs.
-     * 
+     *
      * @param files Map of temporary files to their original names
      * @return List of formatted upload results
      */
@@ -104,16 +109,17 @@ public class LogUploader extends ListenerAdapter {
 
     /**
      * Edits the placeholder message with successful upload results.
-     * 
+     *
      * @param placeholder The message to edit
-     * @param uploaded List of uploaded file URLs
-     * @param files Map of files that were uploaded
+     * @param uploaded    List of uploaded file URLs
+     * @param files       Map of files that were uploaded
      */
     private void editSuccess(Message placeholder, List<String> uploaded, Map<File, String> files) {
+        LogUtils.logInfo("Log upload completed", "files=" + uploaded.size());
         var success = EmbedUtils.createSuccess()
-                .setTitle("📄 Log-Files uploaded")
-                .addField("Information", "Use the Button(s) below to navigate through the logs", false)
-                .setTimestamp(Instant.now());
+            .setTitle("📄 Log-Files uploaded")
+            .addField("Information", "Use the Button(s) below to navigate through the logs", false)
+            .setTimestamp(Instant.now());
 
         List<Button> buttons = new ArrayList<>();
         if (!uploaded.isEmpty()) {
@@ -134,15 +140,16 @@ public class LogUploader extends ListenerAdapter {
 
     /**
      * Edits the placeholder message with failure information.
-     * 
+     *
      * @param placeholder The message to edit
-     * @param ex The exception that occurred
+     * @param ex          The exception that occurred
      */
     private void editFailure(Message placeholder, Throwable ex) {
+        LogUtils.logException("Editing log upload failure response", ex);
         var fail = EmbedUtils.createError()
-                .setTitle("❌ Upload failed")
-                .setDescription("Error: " + ex.getMessage())
-                .setTimestamp(Instant.now());
+            .setTitle("❌ Upload failed")
+            .setDescription("Error: " + ex.getMessage())
+            .setTimestamp(Instant.now());
 
         placeholder.editMessageEmbeds(fail.build()).queue();
     }
@@ -153,7 +160,7 @@ public class LogUploader extends ListenerAdapter {
 
     /**
      * Uploads a log file to mclo.gs and returns the URL.
-     * 
+     *
      * @param file The log file to upload
      * @return URL of the uploaded log
      * @throws IOException If upload fails or API returns an error

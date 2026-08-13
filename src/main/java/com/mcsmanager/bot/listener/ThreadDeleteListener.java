@@ -12,18 +12,20 @@ import java.io.IOException;
 /**
  * Event listener for thread deletion cleanup.
  * Removes vote data when suggestion threads are deleted.
- * 
+ *
  * @author SkyKing_PX
  */
 public class ThreadDeleteListener extends ListenerAdapter {
 
-    /** Vote storage instance for cleanup operations */
+    /**
+     * Vote storage instance for cleanup operations
+     */
     private static final VoteStorage storage = Bot.getVoteStorage();
 
     /**
      * Handles thread deletion events.
      * Removes vote data for deleted suggestion threads to prevent data accumulation.
-     * 
+     *
      * @param event The channel deletion event
      */
     @Override
@@ -35,6 +37,7 @@ public class ThreadDeleteListener extends ListenerAdapter {
         try {
             if (event.getChannel().asThreadChannel().getParentChannel().getId().equals(Config.get().getVoting().getSuggestions_forum_id())) {
                 String threadID = event.getChannel().asThreadChannel().getId();
+                LogUtils.logInfo("Suggestion thread deleted; removing vote data", "thread=" + threadID);
                 storage.removeAllVotes(threadID);
             }
         } catch (IOException e) {

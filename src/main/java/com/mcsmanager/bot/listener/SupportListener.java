@@ -22,7 +22,7 @@ import java.io.IOException;
 /**
  * Event listener for support forum thread management.
  * Automatically adds close buttons to new support threads and handles closure.
- * 
+ *
  * @author SkyKing_PX
  */
 public class SupportListener extends ListenerAdapter {
@@ -31,7 +31,7 @@ public class SupportListener extends ListenerAdapter {
     /**
      * Handles new thread creation in support forums.
      * Automatically adds a close button to support threads.
-     * 
+     *
      * @param event The channel creation event
      */
     @Override
@@ -49,19 +49,21 @@ public class SupportListener extends ListenerAdapter {
         }
 
         MessageEmbed embed = EmbedUtils.createSuccess()
-                .addField("Is your Issue resolved?", "When your issue is resolved, please press on the `Close` Button below.", false)
-                .build();
+            .addField("Is your Issue resolved?", "When your issue is resolved, please press on the `Close` Button below.", false)
+            .build();
 
+        LogUtils.logInfo("Adding support close button", "thread=" + event.getChannel().getId());
         event.getChannel().asThreadChannel().sendMessageEmbeds(embed)
-                .addComponents(ActionRow.of(
-                        Button.success("support:close:" + event.getChannel().getId(), "Close").withEmoji(Emoji.fromUnicode("✅"))
-                )).queue();
+            .addComponents(ActionRow.of(
+                Button.success("support:close:" + event.getChannel().getId(), "Close").withEmoji(Emoji.fromUnicode("✅"))
+            )).queue(success -> LogUtils.logDebug("Support close button added", event.getChannel().getId()),
+                error -> LogUtils.logException("Failed to add support close button", error));
     }
 
     /**
      * Handles button interactions for support thread closure.
      * Validates the interaction and delegates to CloseHandler for confirmation.
-     * 
+     *
      * @param event The button interaction event
      */
     @Override
@@ -69,14 +71,16 @@ public class SupportListener extends ListenerAdapter {
         if (!event.getComponentId().startsWith("support:close:")) return;
         if (!event.isFromGuild() || !event.getChannel().getType().isThread()) {
             event.replyEmbeds(EmbedUtils.createSimpleError("❌ This button only works inside selected forum threads."))
-                    .setEphemeral(true).queue();
+                .setEphemeral(true).queue();
             return;
         }
 
         ThreadChannel thread = event.getChannel().asThreadChannel();
+        LogUtils.logInfo("Support close button clicked", "user=" + event.getUser().getId() + ", thread=" + thread.getId());
         Member invoker = event.getMember();
         Guild guild = event.getGuild();
 
-        event.deferReply(true).queue(hook -> CloseHandler.sendConfirmation(thread, invoker, guild, hook));
+        event.deferReply(true).queue(hook -> CloseHandler.sendConfirmation(thread, invoker, guild, hook),
+            error -> LogUtils.logException("Failed to defer support close confirmation", error));
     }
 }

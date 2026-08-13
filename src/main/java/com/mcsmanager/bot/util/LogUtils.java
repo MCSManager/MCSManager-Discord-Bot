@@ -12,11 +12,13 @@ import java.io.IOException;
 /**
  * Utility class for standardized logging operations.
  * Provides consistent logging patterns and error handling across the bot.
- * 
+ *
  * @author SkyKing_PX
  */
 public class LogUtils {
-    /** Default Logger instance for the bot */
+    /**
+     * Default Logger instance for the bot
+     */
     private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 
     /**
@@ -31,18 +33,18 @@ public class LogUtils {
     /**
      * Logs an exception with a descriptive message at ERROR level.
      *
-     * @param message Descriptive message about what was being attempted
+     * @param message   Descriptive message about what was being attempted
      * @param exception The exception that occurred
      */
     public static void logException(String message, Throwable exception) {
         logger.error("[BOT - ERROR] {}: {}", message, exception.getMessage(), exception);
     }
-    
+
     /**
      * Logs an exception with a descriptive message and additional context at ERROR level.
      *
-     * @param message Descriptive message about what was being attempted
-     * @param context Additional context (e.g., user ID, channel ID)
+     * @param message   Descriptive message about what was being attempted
+     * @param context   Additional context (e.g., user ID, channel ID)
      * @param exception The exception that occurred
      */
     public static void logException(String message, String context, Throwable exception) {
@@ -52,8 +54,8 @@ public class LogUtils {
     /**
      * Logs an exception with a descriptive message at ERROR level.
      *
-     * @param jda JDA instance
-     * @param message Descriptive message about what was being attempted
+     * @param jda       JDA instance
+     * @param message   Descriptive message about what was being attempted
      * @param exception The exception that occurred
      */
     public static void logFatalException(JDA jda, String message, Throwable exception) {
@@ -71,9 +73,9 @@ public class LogUtils {
     /**
      * Logs an exception with a descriptive message and additional context at ERROR level.
      *
-     * @param jda JDA instance
-     * @param message Descriptive message about what was being attempted
-     * @param context Additional context (e.g., user ID, channel ID)
+     * @param jda       JDA instance
+     * @param message   Descriptive message about what was being attempted
+     * @param context   Additional context (e.g., user ID, channel ID)
      * @param exception The exception that occurred
      */
     public static void logFatalException(JDA jda, String message, String context, Throwable exception) {
@@ -91,7 +93,7 @@ public class LogUtils {
     /**
      * Logs an exception with a descriptive message at ERROR level.
      *
-     * @param message Descriptive message about what was being attempted
+     * @param message   Descriptive message about what was being attempted
      * @param exception The exception that occurred
      */
     public static void logFatalException(String message, Throwable exception) {
@@ -102,15 +104,15 @@ public class LogUtils {
     /**
      * Logs an exception with a descriptive message and additional context at ERROR level.
      *
-     * @param message Descriptive message about what was being attempted
-     * @param context Additional context (e.g., user ID, channel ID)
+     * @param message   Descriptive message about what was being attempted
+     * @param context   Additional context (e.g., user ID, channel ID)
      * @param exception The exception that occurred
      */
     public static void logFatalException(String message, String context, Throwable exception) {
         logger.error("[BOT - FATAL] {} ({}): {}", message, context, exception.getMessage(), exception);
         System.exit(1);
     }
-    
+
     /**
      * Logs a warning message with consistent formatting.
      *
@@ -119,7 +121,7 @@ public class LogUtils {
     public static void logWarning(String message) {
         logger.warn("[BOT - WARN] {}", message);
     }
-    
+
     /**
      * Logs a warning message with context.
      *
@@ -129,7 +131,7 @@ public class LogUtils {
     public static void logWarning(String message, String context) {
         logger.warn("[BOT - WARN] {} ({})", message, context);
     }
-    
+
     /**
      * Logs an info message with consistent formatting.
      *
@@ -138,7 +140,7 @@ public class LogUtils {
     public static void logInfo(String message) {
         logger.info("[BOT - INFO] {}", message);
     }
-    
+
     /**
      * Logs an info message with context.
      *
@@ -148,7 +150,7 @@ public class LogUtils {
     public static void logInfo(String message, String context) {
         logger.info("[BOT - INFO] {} ({})", message, context);
     }
-    
+
     /**
      * Logs a debug message with consistent formatting.
      *
@@ -157,7 +159,7 @@ public class LogUtils {
     public static void logDebug(String message) {
         logger.debug("[BOT - DEBUG] {}", message);
     }
-    
+
     /**
      * Logs a debug message with context.
      *
@@ -167,28 +169,28 @@ public class LogUtils {
     public static void logDebug(String message, String context) {
         logger.debug("[BOT - DEBUG] {} ({})", message, context);
     }
-    
+
     /**
      * Logs a command execution attempt.
      *
      * @param command The command name
-     * @param userId The user ID who executed the command
+     * @param userId  The user ID who executed the command
      */
     public static void logCommand(String command, String userId) {
         logger.info("[BOT - CMD] Command '{}' executed by user {}", command, userId);
     }
-    
+
     /**
      * Logs a failed command execution.
      *
      * @param command The command name
-     * @param userId The user ID who executed the command
-     * @param reason The failure reason
+     * @param userId  The user ID who executed the command
+     * @param reason  The failure reason
      */
     public static void logCommandFailure(String command, String userId, String reason) {
         logger.warn("[BOT - CMD - WARN] Command '{}' failed for user {} - {}", command, userId, reason);
     }
-    
+
     /**
      * Logs configuration-related operations.
      *
@@ -197,11 +199,11 @@ public class LogUtils {
     public static void logConfig(String operation) {
         logger.info("[BOT - CONFIG] {}", operation);
     }
-    
+
     /**
      * Logs storage operations.
      *
-     * @param operation The storage operation
+     * @param operation  The storage operation
      * @param identifier Identifier for the operation (e.g., thread ID, user ID)
      */
     public static void logStorage(String operation, String identifier) {

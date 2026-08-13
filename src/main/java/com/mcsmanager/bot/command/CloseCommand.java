@@ -16,27 +16,28 @@ import java.io.IOException;
 /**
  * Slash command for closing forum threads (support, bug reports, suggestions).
  * Validates thread permissions and delegates to CloseHandler for confirmation.
- * 
+ *
  * @author SkyKing_PX
  */
 public class CloseCommand extends ListenerAdapter {
-
 
 
     /**
      * Handles the /close slash command.
      * Validates that the command is used in an appropriate forum thread,
      * then delegates to CloseHandler for confirmation.
-     * 
+     *
      * @param event The slash command interaction event
      */
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if (!event.getName().equals("close")) return;
+        LogUtils.logCommand("close", event.getUser().getId());
 
         if (!event.isFromGuild() || !event.getChannel().getType().isThread()) {
+            LogUtils.logCommandFailure("close", event.getUser().getId(), "Command used outside a guild thread");
             event.replyEmbeds(EmbedUtils.createSimpleError("❌ This command can only be used inside a forum thread."))
-                    .setEphemeral(true).queue();
+                .setEphemeral(true).queue();
             return;
         }
 
@@ -47,14 +48,15 @@ public class CloseCommand extends ListenerAdapter {
             String parentId = event.getChannel().asThreadChannel().getParentChannel().getId();
 
             if (!parentId.equals(supportForumId) && !parentId.equals(bugReportForumId) && !parentId.equals(suggestionForumId)) {
+                LogUtils.logCommandFailure("close", event.getUser().getId(), "Thread is not in a supported forum");
                 event.replyEmbeds(EmbedUtils.createSimpleError("❌ This command can only be used inside selected forum threads."))
-                        .setEphemeral(true).queue();
+                    .setEphemeral(true).queue();
                 return;
             }
         } catch (IOException e) {
             LogUtils.logException("Error while executing /close command", e);
             event.replyEmbeds(EmbedUtils.createSimpleError("❌ Config error. Please try again later."))
-                    .setEphemeral(true).queue();
+                .setEphemeral(true).queue();
             return;
         }
 
@@ -63,6 +65,9 @@ public class CloseCommand extends ListenerAdapter {
         Guild guild = event.getGuild();
 
         // Defer the reply to show confirmation buttons (handled inside CloseHandler)
-        event.deferReply(true).queue(hook -> CloseHandler.sendConfirmation(thread, invoker, guild, hook));
+        LogUtils.logInfo("Preparing close confirmation for thread " + thread.getId(), "user=" + event.getUser().getId());
+        event.deferReply(true).queue(
+            hook -> CloseHandler.sendConfirmation(thread, invoker, guild, hook),
+            error -> LogUtils.logException("Failed to defer /close reply for thread " + thread.getId(), error));
     }
 }

@@ -3,6 +3,7 @@ package com.mcsmanager.bot.storage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mcsmanager.bot.util.LogUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,38 +14,46 @@ import java.util.Map;
  * JSON-based storage system for managing voting data on suggestion forums.
  * Handles vote tracking, user vote history, and persistent storage operations.
  * Thread-safe implementation using synchronized methods.
- * 
+ *
  * @author SkyKing_PX
  */
 public class VoteStorage {
 
-    /** JSON file for storing vote data */
+    /**
+     * JSON file for storing vote data
+     */
     private final File file = new File("votes.json");
-    /** Jackson ObjectMapper for JSON operations */
+    /**
+     * Jackson ObjectMapper for JSON operations
+     */
     private final ObjectMapper mapper = new ObjectMapper();
-    /** Root JSON node containing all vote data */
-    private ObjectNode root;
+    /**
+     * Root JSON node containing all vote data
+     */
+    private final ObjectNode root;
 
     /**
      * Initializes the vote storage system.
      * Creates a new storage file if one doesn't exist, otherwise loads existing data.
-     * 
+     *
      * @throws IOException If there is an error reading or creating the storage file
      */
     public VoteStorage() throws IOException {
+        LogUtils.logStorage("Loading vote storage", file.getPath());
         if (!file.exists()) {
             root = mapper.createObjectNode();
             save();
         } else {
             root = (ObjectNode) mapper.readTree(file);
         }
+        LogUtils.logStorage("Vote storage loaded", file.getPath());
     }
 
     /**
      * Retrieves a user's vote for a specific thread.
-     * 
+     *
      * @param threadID Discord thread ID to check
-     * @param userId Discord user ID to check
+     * @param userId   Discord user ID to check
      * @return "up", "down", or null if no vote exists
      */
     public synchronized String getUserVote(String threadID, String userId) {
@@ -55,9 +64,9 @@ public class VoteStorage {
     /**
      * Saves a user's vote for a specific thread.
      * Creates thread data structure if it doesn't exist.
-     * 
+     *
      * @param threadID Discord thread ID to vote on
-     * @param userId Discord user ID who is voting
+     * @param userId   Discord user ID who is voting
      * @param voteType Type of vote: "up" or "down"
      * @throws IOException If there is an error saving to the storage file
      */
@@ -71,18 +80,19 @@ public class VoteStorage {
             root.set(threadID, msgNode);
         }
 
-        ObjectNode voters = (ObjectNode) msgNode.with("voters");
+        ObjectNode voters = msgNode.with("voters");
         voters.put(userId, voteType);
         save();
+        LogUtils.logStorage("Saved user vote (" + voteType + ")", threadID);
     }
 
     /**
      * Sets the vote count for a specific thread.
      * Creates thread data structure if it doesn't exist.
-     * 
+     *
      * @param threadID Discord thread ID to update
-     * @param up Number of upvotes
-     * @param down Number of downvotes
+     * @param up       Number of upvotes
+     * @param down     Number of downvotes
      * @throws IOException If there is an error saving to the storage file
      */
     public synchronized void setVoteCount(String threadID, int up, int down) throws IOException {
@@ -94,11 +104,12 @@ public class VoteStorage {
         msgNode.put("up", up);
         msgNode.put("down", down);
         save();
+        LogUtils.logStorage("Updated vote count (up=" + up + ", down=" + down + ")", threadID);
     }
 
     /**
      * Removes all vote data for a specific thread.
-     * 
+     *
      * @param threadID Discord thread ID to remove data for
      * @throws IOException If there is an error saving to the storage file
      */
@@ -106,12 +117,13 @@ public class VoteStorage {
         if (root.has(threadID)) {
             root.remove(threadID);
             save();
+            LogUtils.logStorage("Removed all votes", threadID);
         }
     }
 
     /**
      * Loads all vote data from storage.
-     * 
+     *
      * @return Map where key is thread ID and value is int array [upvotes, downvotes]
      */
     public synchronized Map<String, int[]> loadAllVotes() {
@@ -127,7 +139,7 @@ public class VoteStorage {
 
     /**
      * Saves the current vote data to the JSON file.
-     * 
+     *
      * @throws IOException If there is an error writing to the storage file
      */
     private void save() throws IOException {

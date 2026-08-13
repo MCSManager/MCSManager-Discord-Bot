@@ -12,9 +12,9 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 import java.awt.*;
 import java.io.IOException;
@@ -25,45 +25,50 @@ import java.util.function.Consumer;
 /**
  * Utility class for handling thread closure operations.
  * Provides confirmation dialogs and permission checking for closing forum threads.
- * 
+ *
  * @author SkyKing_PX
  */
 public class CloseHandler extends ListenerAdapter {
 
-    /** Vote storage for cleanup operations */
+    /**
+     * Vote storage for cleanup operations
+     */
     private static final VoteStorage storage = Bot.getVoteStorage();
 
     /**
      * Sends a confirmation dialog for thread closure.
-     * 
-     * @param thread The thread to potentially close
+     *
+     * @param thread  The thread to potentially close
      * @param invoker The member requesting closure
-     * @param guild The Discord guild
-     * @param hook The interaction hook for sending the confirmation
+     * @param guild   The Discord guild
+     * @param hook    The interaction hook for sending the confirmation
      */
     public static void sendConfirmation(ThreadChannel thread, Member invoker, Guild guild, InteractionHook hook) {
+        LogUtils.logDebug("Sending close confirmation", "thread=" + thread.getId() + ", user=" + invoker.getId());
         MessageEmbed confirmation = EmbedUtils.createConfirmation("Are you sure you want to close this post?",
-                "You won't be able to contact anyone through this post anymore and it will be archived permanently.");
+            "You won't be able to contact anyone through this post anymore and it will be archived permanently.");
 
         net.dv8tion.jda.api.components.buttons.Button confirmButton = net.dv8tion.jda.api.components.buttons.Button.success("close_confirm:" + thread.getId(), "✅ Confirm");
         net.dv8tion.jda.api.components.buttons.Button cancelButton = Button.danger("close_cancel:" + thread.getId(), "❌ Cancel");
 
         hook.sendMessageEmbeds(confirmation)
-                .addComponents(ActionRow.of(confirmButton, cancelButton))
-                .setEphemeral(true)
-                .queue();
+            .addComponents(ActionRow.of(confirmButton, cancelButton))
+            .setEphemeral(true)
+            .queue(success -> LogUtils.logDebug("Close confirmation sent", "thread=" + thread.getId()),
+                error -> LogUtils.logException("Failed to send close confirmation for thread " + thread.getId(), error));
     }
 
     /**
      * Closes a forum thread with proper permission checking and cleanup.
-     * 
-     * @param thread The thread to close
+     *
+     * @param thread  The thread to close
      * @param invoker The member requesting closure
-     * @param guild The Discord guild
-     * @param reply Consumer for sending the result embed
+     * @param guild   The Discord guild
+     * @param reply   Consumer for sending the result embed
      * @throws IOException If there is an error accessing configuration
      */
     public static void closeThread(ThreadChannel thread, Member invoker, Guild guild, Consumer<MessageEmbed> reply) throws IOException {
+        LogUtils.logInfo("Starting thread close", "thread=" + thread.getId() + ", user=" + invoker.getId());
         ForumChannel parent = thread.getParentChannel().asForumChannel();
 
         String threadOwnerId = thread.getOwnerId();
@@ -79,21 +84,23 @@ public class CloseHandler extends ListenerAdapter {
         boolean isOwner = invoker.getId().equals(threadOwnerId);
         List<String> modRolesList = List.of(modRoleIds);
         boolean isModerator = invoker.getRoles().stream()
-                .anyMatch(role -> modRolesList.contains(role.getId()));
+            .anyMatch(role -> modRolesList.contains(role.getId()));
 
         if (!isOwner && !isModerator) {
+            LogUtils.logWarning("Unauthorized thread close attempt", "thread=" + thread.getId() + ", user=" + invoker.getId());
             reply.accept(EmbedUtils.createSimpleError("❌ Only the post creator or a moderator can close this post."));
             return;
         }
 
         ForumTag closedTag = parent.getAvailableTags().stream()
-                .filter(tag -> tag.getName().toLowerCase().contains("closed"))
-                .findFirst().orElse(null);
+            .filter(tag -> tag.getName().toLowerCase().contains("closed"))
+            .findFirst().orElse(null);
 
         if (closedTag == null) {
+            LogUtils.logWarning("Closed forum tag not found", "thread=" + thread.getId());
             reply.accept(EmbedUtils.createError()
-                    .setDescription("❌ Could not find a 'Closed' tag")
-                    .build());
+                .setDescription("❌ Could not find a 'Closed' tag")
+                .build());
             return;
         }
 
@@ -109,58 +116,64 @@ public class CloseHandler extends ListenerAdapter {
                 false)
             .build();
 
-        thread.sendMessageEmbeds(confirmationEmbed).queue();
+        thread.sendMessageEmbeds(confirmationEmbed)
+            .queue(success -> LogUtils.logDebug("Thread closure announcement sent", "thread=" + thread.getId()),
+                failure -> LogUtils.logException("Failed to send thread closure announcement for " + thread.getId(), failure));
 
         thread.getManager()
-                .setAppliedTags(updatedTags)
-                .setLocked(true)
-                .setArchived(true)
-                .queue(
-                        success -> {
-                            MessageEmbed successEmbed = EmbedUtils.createSuccess()
-                                    .addField("✅ Post Closed", "This post has been successfully closed", false)
-                                    .build();
+            .setAppliedTags(updatedTags)
+            .setLocked(true)
+            .setArchived(true)
+            .queue(
+                success -> {
+                    MessageEmbed successEmbed = EmbedUtils.createSuccess()
+                        .addField("✅ Post Closed", "This post has been successfully closed", false)
+                        .build();
 
-                            reply.accept(successEmbed);
+                    reply.accept(successEmbed);
 
-                            MessageEmbed logEmbed = EmbedUtils.createSuccess()
-                                    .addField("✅ Post Closed",
-                                            "Name: " + thread.getName() +
-                                                    "\n Parent: " + thread.getParentChannel().getJumpUrl() +
-                                                    "\nLink: " + thread.getJumpUrl() +
-                                                    "\nClosed by: " + invoker.getUser().getName(),
-                                            false)
-                                    .build();
+                    MessageEmbed logEmbed = EmbedUtils.createSuccess()
+                        .addField("✅ Post Closed",
+                            "Name: " + thread.getName() +
+                                "\n Parent: " + thread.getParentChannel().getJumpUrl() +
+                                "\nLink: " + thread.getJumpUrl() +
+                                "\nClosed by: " + invoker.getUser().getName(),
+                            false)
+                        .build();
 
-                            MessageHandler.logToChannel(guild, logEmbed);
-                            try {
-                                String threadId = thread.getId();
-                                storage.removeAllVotes(threadId);
-                            } catch (IOException e) {
-                                LogUtils.logException("[BOT] Error removing votes from thread \"" + thread.getName() + "\"", e);
-                            }
-                        },
-                        failure -> {
-                            MessageEmbed failureEmbed = EmbedUtils.createError()
-                                    .setDescription("❌ Failed to close the post.")
-                                    .build();
+                    MessageHandler.logToChannel(guild, logEmbed);
+                    try {
+                        String threadId = thread.getId();
+                        storage.removeAllVotes(threadId);
+                    } catch (IOException e) {
+                        LogUtils.logException("[BOT] Error removing votes from thread \"" + thread.getName() + "\"", e);
+                    }
+                    LogUtils.logInfo("Thread closed successfully", "thread=" + thread.getId());
+                },
+                failure -> {
+                    MessageEmbed failureEmbed = EmbedUtils.createError()
+                        .setDescription("❌ Failed to close the post.")
+                        .build();
 
-                            reply.accept(failureEmbed);
-                        }
-                );
+                    reply.accept(failureEmbed);
+                    LogUtils.logException("Failed to close thread " + thread.getId(), failure);
+                }
+            );
     }
 
     /**
      * Handles button interactions for thread closure confirmation.
-     * 
+     *
      * @param event The button interaction event
      */
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        if (!event.getComponentId().startsWith("close_confirm:") && !event.getComponentId().startsWith("close_cancel:")) return;
+        if (!event.getComponentId().startsWith("close_confirm:") && !event.getComponentId().startsWith("close_cancel:"))
+            return;
 
         String id = event.getComponentId();
         String threadId = id.split(":")[1];
+        LogUtils.logInfo("Close confirmation button clicked", "user=" + event.getUser().getId() + ", action=" + (id.startsWith("close_confirm:") ? "confirm" : "cancel") + ", thread=" + threadId);
         Guild guild = event.getGuild();
         Member member = event.getMember();
 
@@ -183,6 +196,7 @@ public class CloseHandler extends ListenerAdapter {
                     event.getHook().editOriginalEmbeds(embed).setComponents().queue();
                 });
             } catch (IOException e) {
+                LogUtils.logException("Configuration error while closing thread " + threadId, e);
                 event.getHook().editOriginal("❌ Error closing the thread.").queue();
             }
         } else if (id.startsWith("close_cancel:")) {
@@ -190,11 +204,12 @@ public class CloseHandler extends ListenerAdapter {
             event.deferEdit().queue();
 
             event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                            .setColor(Color.YELLOW)
-                            .setDescription("❌ Post closure cancelled.")
-                            .build())
-                    .setComponents()
-                    .queue();
+                    .setColor(Color.YELLOW)
+                    .setDescription("❌ Post closure cancelled.")
+                    .build())
+                .setComponents()
+                .queue();
+            LogUtils.logInfo("Thread closure cancelled", "thread=" + threadId + ", user=" + member.getId());
         }
     }
 }

@@ -4,28 +4,30 @@ import com.mcsmanager.bot.command.CommandRegistry;
 import com.mcsmanager.bot.util.InactivityChecker;
 import com.mcsmanager.bot.util.LogUtils;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
-import java.util.TimerTask;
 
 /**
  * Main event listener for the MCSM Discord Bot.
  * Handles bot initialization, command registration, and startup tasks.
- * 
+ *
  * @author SkyKing_PX
  */
 public class Listener extends ListenerAdapter {
 
-    /** Timestamp when the bot started */
+    /**
+     * Timestamp when the bot started
+     */
     public static Instant START_TIME;
 
     /**
      * Handles the bot ready event.
      * Registers slash commands, initializes storage systems, and restores pending tickets.
-     * 
+     *
      * @param event The ReadyEvent from JDA
      */
     @Override
@@ -34,8 +36,9 @@ public class Listener extends ListenerAdapter {
         LogUtils.logInfo("Registering Commands...");
 
         api.updateCommands()
-                .addCommands(CommandRegistry.registerCommands())
-                .queue(success -> LogUtils.logInfo("Global commands updated."));
+            .addCommands(CommandRegistry.registerCommands())
+            .queue(success -> LogUtils.logInfo("Global commands updated."),
+                error -> LogUtils.logException("Failed to update global commands", error));
 
         try {
             Bot.initStorage();
@@ -57,5 +60,8 @@ public class Listener extends ListenerAdapter {
                 LogUtils.logException("Error during initial inactivity check", e);
             }
         }).start();
+
+        // Ready
+        api.getPresence().setStatus(OnlineStatus.ONLINE);
     }
 }

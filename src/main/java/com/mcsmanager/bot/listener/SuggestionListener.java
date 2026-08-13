@@ -24,19 +24,21 @@ import java.util.concurrent.TimeUnit;
 /**
  * Event listener for suggestion forum thread management.
  * Handles voting system for feature suggestions with persistent vote storage.
- * 
+ *
  * @author SkyKing_PX
  */
 public class SuggestionListener extends ListenerAdapter {
 
 
-    /** Vote storage instance for persistent data */
+    /**
+     * Vote storage instance for persistent data
+     */
     private final VoteStorage storage;
 
     /**
      * Constructs a new SuggestionListener with vote storage.
      * Loads existing vote data from storage into memory.
-     * 
+     *
      * @param storage VoteStorage instance for persistent vote data
      * @throws IOException If there is an error loading existing vote data
      */
@@ -52,7 +54,7 @@ public class SuggestionListener extends ListenerAdapter {
     /**
      * Handles new thread creation in suggestion forums.
      * Automatically adds voting buttons to new suggestion threads.
-     * 
+     *
      * @param event The channel creation event
      */
     @Override
@@ -70,47 +72,59 @@ public class SuggestionListener extends ListenerAdapter {
         }
 
         MessageEmbed embed = EmbedUtils.createSuccess()
-                .addField("Vote for this Feature", "You are able to vote either **for** or **against** this feature.\nCast your vote below!\n\n> Note: This only improves the chances of this request being **prioritised**. It can still get denied because of various reasons.", false)
-                .build();
+            .addField("Vote for this Feature", "You are able to vote either **for** or **against** this feature.\nCast your vote below!\n\n> Note: This only improves the chances of this request being **prioritised**. It can still get denied because of various reasons.", false)
+            .build();
 
         // Slight delay to ensure thread is fully ready
         event.getJDA().getRateLimitPool().schedule(() -> {
+            LogUtils.logDebug("Adding voting buttons", "thread=" + event.getChannel().getId());
             event.getChannel().asThreadChannel().sendMessageEmbeds(embed)
-                    .addComponents(ActionRow.of(
-                            Button.success("vote:up:" + event.getChannel().getId(), "Upvote").withEmoji(Emoji.fromUnicode("👍")),
-                            Button.danger("vote:down:" + event.getChannel().getId(), "Downvote").withEmoji(Emoji.fromUnicode("👎"))
-                    )).queue();
+                .addComponents(ActionRow.of(
+                    Button.success("vote:up:" + event.getChannel().getId(), "Upvote").withEmoji(Emoji.fromUnicode("👍")),
+                    Button.danger("vote:down:" + event.getChannel().getId(), "Downvote").withEmoji(Emoji.fromUnicode("👎"))
+                )).queue(success -> LogUtils.logInfo("Voting buttons added", "thread=" + event.getChannel().getId()),
+                    error -> LogUtils.logException("Failed to add voting buttons", error));
         }, 2, TimeUnit.SECONDS);
     }
 
-    /** In-memory cache of upvotes per thread */
+    /**
+     * In-memory cache of upvotes per thread
+     */
     private final Map<String, Integer> yesVotes = new HashMap<>();
-    /** In-memory cache of downvotes per thread */
+    /**
+     * In-memory cache of downvotes per thread
+     */
     private final Map<String, Integer> noVotes = new HashMap<>();
 
     /**
      * Handles voting button interactions.
      * Processes upvotes and downvotes, prevents duplicate voting,
      * and updates vote counts with persistent storage.
-     * 
+     *
      * @param event The button interaction event
      */
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         if (!event.getComponentId().startsWith("vote:")) return;
 
+        MessageEmbed alreadyLockedEmbed = EmbedUtils.createError()
+            .setTitle("Vote Denied")
+            .setDescription("❌ **You tried to vote on an already closed post in** `" + event.getGuild().getName() + "`\n> The vote has not been registered.")
+            .build();
+
         // Check if thread is locked and archived
-        if (event.getChannel().asThreadChannel().isLocked() && event.getChannel().asThreadChannel().isArchived()) {
+        if ((event.getChannel().asThreadChannel().isLocked() && event.getChannel().asThreadChannel().isArchived()) || event.getChannel().asThreadChannel().getAppliedTags().stream().anyMatch(tag -> tag.getName().toLowerCase().contains("closed"))) {
             User user = event.getUser();
             user.openPrivateChannel()
-                    .flatMap(channel -> channel.sendMessage("**You tried to vote on an already closed post in** `" + event.getGuild().getName() + "`\nThe vote has not been registered."))
-                    .queue();
+                .flatMap(channel -> channel.sendMessageEmbeds(alreadyLockedEmbed))
+                .queue();
             return;
         }
 
         String threadID = event.getChannel().asThreadChannel().getId();
         String userId = event.getUser().getId();
         boolean isUpvote = event.getComponentId().startsWith("vote:up:");
+        LogUtils.logInfo("Vote button clicked", "user=" + userId + ", thread=" + threadID + ", vote=" + (isUpvote ? "up" : "down"));
 
         int yes = yesVotes.getOrDefault(threadID, 0);
         int no = noVotes.getOrDefault(threadID, 0);
@@ -119,7 +133,7 @@ public class SuggestionListener extends ListenerAdapter {
 
         try {
             // Defer reply for ephemeral feedback
-            event.deferReply(true).queue(); // true = ephemeral
+            event.deferReply(true).queue(null, error -> LogUtils.logException("Failed to defer vote reply", error));
 
             if (previousVote == null) {
                 if (isUpvote) yes++;
@@ -130,12 +144,13 @@ public class SuggestionListener extends ListenerAdapter {
                 storage.setVoteCount(threadID, yes, no);
                 storage.saveUserVote(threadID, userId, isUpvote ? "up" : "down");
 
-                MessageEmbed embed = EmbedUtils.createLogEmbed("Vote Added", 
-                        "**Vote added** by <@" + userId + "> to post " + event.getChannel().asThreadChannel().getJumpUrl() + " - 👍 " + yes + " | 👎 " + no);
+                MessageEmbed embed = EmbedUtils.createLogEmbed("Vote Added",
+                    "**Vote added** by <@" + userId + "> to post " + event.getChannel().asThreadChannel().getJumpUrl() + " - 👍 " + yes + " | 👎 " + no);
                 MessageHandler.logToChannel(event.getGuild(), embed);
 
                 // Send ephemeral confirmation
                 event.getHook().sendMessage("✅ **Your vote has been registered, thank you!**").queue();
+                LogUtils.logInfo("Vote added", "user=" + userId + ", thread=" + threadID);
 
             } else if (!previousVote.equals(isUpvote ? "up" : "down")) {
                 if (isUpvote) {
@@ -151,27 +166,29 @@ public class SuggestionListener extends ListenerAdapter {
                 storage.setVoteCount(threadID, yes, no);
                 storage.saveUserVote(threadID, userId, isUpvote ? "up" : "down");
 
-                MessageEmbed embed = EmbedUtils.createLogEmbed("Vote Updated", 
-                        "**Vote updated** by <@" + userId + "> in post " + event.getChannel().asThreadChannel().getJumpUrl() + " - 👍 " + yes + " | 👎 " + no);
+                MessageEmbed embed = EmbedUtils.createLogEmbed("Vote Updated",
+                    "**Vote updated** by <@" + userId + "> in post " + event.getChannel().asThreadChannel().getJumpUrl() + " - 👍 " + yes + " | 👎 " + no);
                 MessageHandler.logToChannel(event.getGuild(), embed);
 
                 event.getHook().sendMessage("✅ **Your vote has been changed.**").queue();
+                LogUtils.logInfo("Vote changed", "user=" + userId + ", thread=" + threadID);
 
             } else {
                 event.getHook().sendMessage("❌ **You already voted this way.**").queue();
+                LogUtils.logDebug("Duplicate vote rejected", "user=" + userId + ", thread=" + threadID);
                 return;
             }
 
             MessageEmbed edited = EmbedUtils.createSuccess()
-                    .addField("Vote for this Feature", "You are able to vote either **for** or **against** this feature.\nCast your vote below!", false)
-                    .addField("Current Vote Count", "👍 Upvotes: **" + yes + "**\n👎 Downvotes: **" + no + "**", false)
-                    .build();
+                .addField("Vote for this Feature", "You are able to vote either **for** or **against** this feature.\nCast your vote below!", false)
+                .addField("Current Vote Count", "👍 Upvotes: **" + yes + "**\n👎 Downvotes: **" + no + "**", false)
+                .build();
 
             event.getMessage().editMessageEmbeds(edited)
-                    .setComponents(ActionRow.of(
-                            Button.success("vote:up:" + event.getChannel().getId(), "Upvote").withEmoji(Emoji.fromUnicode("👍")),
-                            Button.danger("vote:down:" + event.getChannel().getId(), "Downvote").withEmoji(Emoji.fromUnicode("👎"))
-                    )).queue();
+                .setComponents(ActionRow.of(
+                    Button.success("vote:up:" + event.getChannel().getId(), "Upvote").withEmoji(Emoji.fromUnicode("👍")),
+                    Button.danger("vote:down:" + event.getChannel().getId(), "Downvote").withEmoji(Emoji.fromUnicode("👎"))
+                )).queue();
 
         } catch (Exception e) {
             LogUtils.logException("Failed to process vote", userId, e);

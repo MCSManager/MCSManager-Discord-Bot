@@ -27,6 +27,7 @@ public class ShortcutCommand extends ListenerAdapter {
         }
 
         String subcommand = event.getSubcommandName();
+        LogUtils.logCommand("shortcut " + subcommand, event.getUser().getId());
 
         if (subcommand == null) {
             event.reply("Invalid subcommand").setEphemeral(true).queue();
@@ -48,6 +49,7 @@ public class ShortcutCommand extends ListenerAdapter {
     private void handleAdd(SlashCommandInteractionEvent event) {
         // Check if user has moderator role (you can customize this check)
         if (!isModerator(event)) {
+            LogUtils.logCommandFailure("shortcut add", event.getUser().getId(), "Unauthorized access attempt");
             event.reply("You don't have permission to use this command.").setEphemeral(true).queue();
             return;
         }
@@ -68,18 +70,22 @@ public class ShortcutCommand extends ListenerAdapter {
         }
 
         Shortcut shortcut = new Shortcut(id, description, messageTitle, messageDescription);
-        ShortcutStorage.addShortcut(shortcut);
+        if (!ShortcutStorage.addShortcut(shortcut)) {
+            LogUtils.logCommandFailure("shortcut add", event.getUser().getId(), "Shortcut already exists");
+            event.reply("A shortcut with the ID `" + id + "` already exists!").setEphemeral(true).queue();
+            return;
+        }
 
         MessageEmbed embed = EmbedUtils.createSuccess()
-                .setTitle("✅ Shortcut Added")
-                .addField("ID", "`" + id + "`", false)
-                .addField("Description", description, false)
-                .addField("Message Title", messageTitle, false)
-                .addField("Message Description", messageDescription, false)
-                .build();
+            .setTitle("✅ Shortcut Added")
+            .addField("ID", "`" + id + "`", false)
+            .addField("Description", description, false)
+            .addField("Message Title", messageTitle, false)
+            .addField("Message Description", messageDescription, false)
+            .build();
 
         event.replyEmbeds(embed).setEphemeral(true).queue();
-        LogUtils.logInfo("Shortcut added: " + id);
+        LogUtils.logInfo("Shortcut added: " + id, "user=" + event.getUser().getId());
     }
 
     /**
@@ -88,6 +94,7 @@ public class ShortcutCommand extends ListenerAdapter {
     private void handleRemove(SlashCommandInteractionEvent event) {
         // Check if user has moderator role
         if (!isModerator(event)) {
+            LogUtils.logCommandFailure("shortcut remove", event.getUser().getId(), "Unauthorized access attempt");
             event.reply("You don't have permission to use this command.").setEphemeral(true).queue();
             return;
         }
@@ -104,15 +111,19 @@ public class ShortcutCommand extends ListenerAdapter {
             return;
         }
 
-        ShortcutStorage.removeShortcut(id);
+        if (!ShortcutStorage.removeShortcut(id)) {
+            LogUtils.logCommandFailure("shortcut remove", event.getUser().getId(), "Shortcut not found");
+            event.reply("No shortcut found with the ID `" + id + "`!").setEphemeral(true).queue();
+            return;
+        }
 
         MessageEmbed embed = EmbedUtils.createSuccess()
-                .setTitle("✅ Shortcut Removed")
-                .setDescription("The shortcut `" + id + "` has been removed.")
-                .build();
+            .setTitle("✅ Shortcut Removed")
+            .setDescription("The shortcut `" + id + "` has been removed.")
+            .build();
 
         event.replyEmbeds(embed).setEphemeral(true).queue();
-        LogUtils.logInfo("Shortcut removed: " + id);
+        LogUtils.logInfo("Shortcut removed: " + id, "user=" + event.getUser().getId());
     }
 
     /**
@@ -134,12 +145,12 @@ public class ShortcutCommand extends ListenerAdapter {
         }
 
         MessageEmbed embed = EmbedUtils.createDefault()
-                .setTitle(shortcut.getMessageTitle())
-                .setDescription(shortcut.getMessageDescription())
-                .build();
+            .setTitle(shortcut.getMessageTitle())
+            .setDescription(shortcut.getMessageDescription())
+            .build();
 
         event.replyEmbeds(embed).queue();
-        LogUtils.logInfo("Shortcut executed: " + id);
+        LogUtils.logInfo("Shortcut executed: " + id, "user=" + event.getUser().getId());
     }
 
     /**
@@ -155,19 +166,19 @@ public class ShortcutCommand extends ListenerAdapter {
 
         // Build the list embed
         net.dv8tion.jda.api.EmbedBuilder embed = EmbedUtils.createDefault()
-                .setTitle("📋 Available Shortcuts")
-                .setDescription("Here are all the available shortcuts you can execute:");
+            .setTitle("📋 Available Shortcuts")
+            .setDescription("Here are all the available shortcuts you can execute:");
 
         for (Shortcut shortcut : allShortcuts) {
             embed.addField(
-                    "`/" + shortcut.getId() + "`",
-                    shortcut.getDescription(),
-                    false
+                "`/" + shortcut.getId() + "`",
+                shortcut.getDescription(),
+                false
             );
         }
 
         event.replyEmbeds(embed.build()).queue();
-        LogUtils.logInfo("Listed all shortcuts: " + allShortcuts.size());
+        LogUtils.logInfo("Listed all shortcuts: " + allShortcuts.size(), "user=" + event.getUser().getId());
     }
 
     /**
@@ -189,6 +200,6 @@ public class ShortcutCommand extends ListenerAdapter {
 
         List<String> modRolesList = List.of(modRoleIds);
         return event.getMember().getRoles().stream()
-                .anyMatch(role -> modRolesList.contains(role.getId()));
+            .anyMatch(role -> modRolesList.contains(role.getId()));
     }
 }

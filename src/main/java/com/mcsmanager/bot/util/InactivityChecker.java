@@ -14,10 +14,10 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -105,8 +105,8 @@ public class InactivityChecker extends ListenerAdapter {
     /**
      * Checks a specific forum for inactive threads.
      *
-     * @param guild The Discord guild
-     * @param forumId The forum channel ID
+     * @param guild     The Discord guild
+     * @param forumId   The forum channel ID
      * @param forumName The name of the forum (for logging)
      */
     private static void checkForumInactivity(Guild guild, String forumId, String forumName) {
@@ -127,7 +127,7 @@ public class InactivityChecker extends ListenerAdapter {
      * Processes a single thread to check for inactivity.
      * Sends a reminder at 7 days and closes at 30 days of inactivity.
      *
-     * @param thread The thread channel to check
+     * @param thread    The thread channel to check
      * @param forumName The name of the forum
      */
     private static void processThread(ThreadChannel thread, String forumName) {
@@ -139,7 +139,7 @@ public class InactivityChecker extends ListenerAdapter {
 
             // Skip posts that are already closed
             boolean isClosed = thread.getAppliedTags().stream()
-                    .anyMatch(tag -> tag.getName().toLowerCase().contains("closed"));
+                .anyMatch(tag -> tag.getName().toLowerCase().contains("closed"));
             if (isClosed) {
                 return;
             }
@@ -228,10 +228,10 @@ public class InactivityChecker extends ListenerAdapter {
             thread.getHistory().retrievePast(100).queue(messages -> {
                 try {
                     boolean reminderAlreadySent = messages.stream()
-                            .anyMatch(msg -> msg.getAuthor().isBot() &&
-                                    msg.getEmbeds().stream()
-                                            .anyMatch(embed -> embed.getFields().stream()
-                                                    .anyMatch(field -> "Inactivity notice".equals(field.getName()))));
+                        .anyMatch(msg -> msg.getAuthor().isBot() &&
+                            msg.getEmbeds().stream()
+                                .anyMatch(embed -> embed.getFields().stream()
+                                    .anyMatch(field -> "Inactivity notice".equals(field.getName()))));
 
                     if (reminderAlreadySent) {
                         LogUtils.logDebug("Reminder already sent to thread: " + thread.getName());
@@ -244,14 +244,14 @@ public class InactivityChecker extends ListenerAdapter {
                     MessageEmbed reminder = EmbedUtils.createWarning().addField("Inactivity notice", "It looks like your issue hasn't received a reply in the last 7 days.\nHas your issue been resolved? If so, please close this post using the `/close` command.\nIf not, please try to provide more information or ping the moderators.\n\n> Note: If this post stays inactive for a total of 30 days it will be closed automatically.", false).build();
 
                     thread.sendMessage("<@" + threadCreatorId + ">").addEmbeds(reminder).queue(
-                            success -> {
-                                LogUtils.logInfo("Sent reminder to thread: " + thread.getName());
-                                pendingReminders.remove(threadId);
-                            },
-                            failure -> {
-                                LogUtils.logException("Failed to send reminder to thread: " + thread.getName(), failure);
-                                pendingReminders.remove(threadId);
-                            }
+                        success -> {
+                            LogUtils.logInfo("Sent reminder to thread: " + thread.getName());
+                            pendingReminders.remove(threadId);
+                        },
+                        failure -> {
+                            LogUtils.logException("Failed to send reminder to thread: " + thread.getName(), failure);
+                            pendingReminders.remove(threadId);
+                        }
                     );
                 } catch (Exception e) {
                     LogUtils.logException("Error while checking/sending reminder for thread " + thread.getName(), e);
@@ -270,7 +270,7 @@ public class InactivityChecker extends ListenerAdapter {
     /**
      * Automatically closes a thread after 30 days of inactivity.
      *
-     * @param thread The thread to close
+     * @param thread    The thread to close
      * @param forumName The name of the forum
      */
     private static void autoCloseThread(ThreadChannel thread, String forumName) {
@@ -285,9 +285,9 @@ public class InactivityChecker extends ListenerAdapter {
             thread.getHistory().retrievePast(100).queue(messages -> {
                 try {
                     boolean closureAlreadySent = messages.stream()
-                            .anyMatch(msg -> msg.getAuthor().isBot() &&
-                                    msg.getEmbeds().stream()
-                                            .anyMatch(embed -> "❗ Post closed".equals(embed.getTitle())));
+                        .anyMatch(msg -> msg.getAuthor().isBot() &&
+                            msg.getEmbeds().stream()
+                                .anyMatch(embed -> "❗ Post closed".equals(embed.getTitle())));
 
                     if (closureAlreadySent) {
                         LogUtils.logDebug("Closure message already sent to thread: " + thread.getName());
@@ -298,9 +298,9 @@ public class InactivityChecker extends ListenerAdapter {
                     // Apply closed tag
                     String closedTagName = "closed";
                     var closedTag = thread.getParentChannel().asForumChannel().getAvailableTags().stream()
-                            .filter(tag -> tag.getName().toLowerCase().contains(closedTagName))
-                            .findFirst()
-                            .orElse(null);
+                        .filter(tag -> tag.getName().toLowerCase().contains(closedTagName))
+                        .findFirst()
+                        .orElse(null);
 
                     List<ForumTagSnowflake> updatedTags = new java.util.ArrayList<>(thread.getAppliedTags());
                     if (closedTag != null && !updatedTags.contains(closedTag)) {
@@ -310,35 +310,35 @@ public class InactivityChecker extends ListenerAdapter {
                     // Send closure message with embed and ping the thread owner
                     long threadCreatorId = thread.getOwnerIdLong();
                     MessageEmbed closureEmbed = EmbedUtils.createError()
-                            .setTitle("❗ Post closed")
-                            .setDescription("This post has been automatically closed due to inactivity (30+ days with no user response).\n\n" +
-                                    "If you still need help, feel free to create a new post in the " + forumName + " forum.\n\n" +
-                                    "> Note: This feature is still in the testing phase. If you feel that your post was closed due to an error, please ping @skyking_px.")
-                            .build();
+                        .setTitle("❗ Post closed")
+                        .setDescription("This post has been automatically closed due to inactivity (30+ days with no user response).\n\n" +
+                            "If you still need help, feel free to create a new post in the " + forumName + " forum.\n\n" +
+                            "> Note: This feature is still in the testing phase. If you feel that your post was closed due to an error, please ping @skyking_px.")
+                        .build();
 
                     thread.sendMessage("<@" + threadCreatorId + ">").addEmbeds(closureEmbed).queue(
-                            msgSuccess -> {
-                                LogUtils.logInfo("Sent closure notification to thread: " + thread.getName());
-                                // Lock and archive the thread after sending the message
-                                thread.getManager()
-                                        .setAppliedTags(updatedTags.stream().map(tag -> (net.dv8tion.jda.api.entities.channel.forums.ForumTag) tag).toList())
-                                        .setLocked(true)
-                                        .setArchived(true)
-                                        .queue(
-                                                lockSuccess -> {
-                                                    LogUtils.logInfo("Auto-closed and locked: " + thread.getName());
-                                                    pendingClosures.remove(threadId);
-                                                },
-                                                lockFailure -> {
-                                                    LogUtils.logException("Failed to lock/archive thread: " + thread.getName(), lockFailure);
-                                                    pendingClosures.remove(threadId);
-                                                }
-                                        );
-                            },
-                            msgFailure -> {
-                                LogUtils.logException("Failed to send closure message for: " + thread.getName(), msgFailure);
-                                pendingClosures.remove(threadId);
-                            }
+                        msgSuccess -> {
+                            LogUtils.logInfo("Sent closure notification to thread: " + thread.getName());
+                            // Lock and archive the thread after sending the message
+                            thread.getManager()
+                                .setAppliedTags(updatedTags.stream().map(tag -> (net.dv8tion.jda.api.entities.channel.forums.ForumTag) tag).toList())
+                                .setLocked(true)
+                                .setArchived(true)
+                                .queue(
+                                    lockSuccess -> {
+                                        LogUtils.logInfo("Auto-closed and locked: " + thread.getName());
+                                        pendingClosures.remove(threadId);
+                                    },
+                                    lockFailure -> {
+                                        LogUtils.logException("Failed to lock/archive thread: " + thread.getName(), lockFailure);
+                                        pendingClosures.remove(threadId);
+                                    }
+                                );
+                        },
+                        msgFailure -> {
+                            LogUtils.logException("Failed to send closure message for: " + thread.getName(), msgFailure);
+                            pendingClosures.remove(threadId);
+                        }
                     );
                 } catch (Exception e) {
                     LogUtils.logException("Error while checking/sending closure for thread " + thread.getName(), e);

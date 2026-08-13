@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * Utility class for handling Discord message operations.
  * Provides methods for sending prepared messages, logging, and emoji parsing.
- * 
+ *
  * @author SkyKing_PX
  */
 public class MessageHandler {
@@ -24,27 +24,31 @@ public class MessageHandler {
 
     /**
      * Sends a prepared message embed, optionally mentioning a user.
-     * 
+     *
      * @param event The slash command interaction event
      * @param embed The message embed to send
      */
-    public static void sendPreparedMessage(SlashCommandInteractionEvent event, MessageEmbed embed){
+    public static void sendPreparedMessage(SlashCommandInteractionEvent event, MessageEmbed embed) {
+        LogUtils.logDebug("Sending prepared response", "command=" + event.getName() + ", user=" + event.getUser().getId());
         if (event.getOption("user") != null) {
 
             User user = event.getOption("user").getAsUser();
             String mention = user.getAsMention();
 
             event.getHook().sendMessage(mention)
-                    .addEmbeds(embed)
-                    .queue();
+                .addEmbeds(embed)
+                .queue(success -> LogUtils.logDebug("Prepared response sent", event.getName()),
+                    error -> LogUtils.logException("Failed to send prepared response", error));
         } else {
-            event.getHook().sendMessageEmbeds(embed).queue();
+            event.getHook().sendMessageEmbeds(embed).queue(
+                success -> LogUtils.logDebug("Prepared response sent", event.getName()),
+                error -> LogUtils.logException("Failed to send prepared response", error));
         }
     }
 
     /**
      * Logs an embed message to the configured log channel.
-     * 
+     *
      * @param guild The Discord guild where the log channel exists
      * @param embed The embed to log
      */
@@ -56,14 +60,18 @@ public class MessageHandler {
             LogUtils.logException("Error getting log channel", e);
         }
         if (logChannel != null) {
-            logChannel.sendMessageEmbeds(embed).queue();
+            logChannel.sendMessageEmbeds(embed).queue(
+                success -> LogUtils.logDebug("Log embed sent", "guild=" + guild.getId()),
+                error -> LogUtils.logException("Failed to send log embed", error));
+        } else {
+            LogUtils.logWarning("Configured log channel was not found", "guild=" + guild.getId());
         }
     }
 
     /**
      * Parses custom emoji names in text and converts them to emoji mentions.
-     * 
-     * @param jda JDA instance for emoji lookup
+     *
+     * @param jda  JDA instance for emoji lookup
      * @param text Text containing emoji names in :name: format
      * @return Text with emoji names replaced by emoji mentions
      */
@@ -75,9 +83,9 @@ public class MessageHandler {
         while (matcher.find()) {
             String emojiName = matcher.group(1);
             RichCustomEmoji emoji = jda.getEmojisByName(emojiName, true)
-                    .stream()
-                    .findFirst()
-                    .orElse(null);
+                .stream()
+                .findFirst()
+                .orElse(null);
 
             if (emoji != null) {
                 matcher.appendReplacement(sb, emoji.getAsMention()); // Replaces :emoji: with <:emoji:id>

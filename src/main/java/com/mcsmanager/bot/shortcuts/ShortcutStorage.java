@@ -19,7 +19,7 @@ import java.util.Map;
 public class ShortcutStorage {
     private static final String SHORTCUTS_FILE = "shortcuts.json";
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static Map<String, Shortcut> shortcuts = new HashMap<>();
+    private static final Map<String, Shortcut> shortcuts = new HashMap<>();
 
     /**
      * Loads shortcuts from the JSON file.
@@ -60,7 +60,7 @@ public class ShortcutStorage {
             data.shortcuts = new ArrayList<>(shortcuts.values());
 
             objectMapper.writerWithDefaultPrettyPrinter()
-                    .writeValue(new File(SHORTCUTS_FILE), data);
+                .writeValue(new File(SHORTCUTS_FILE), data);
             LogUtils.logInfo("Shortcuts saved to file.");
         } catch (IOException e) {
             LogUtils.logException("Error saving shortcuts", e);

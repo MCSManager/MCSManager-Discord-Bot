@@ -11,20 +11,20 @@ import java.util.List;
 /**
  * Registry for all Discord slash commands supported by MCSM Discord Bot.
  * Centralizes command definition and configuration.
- * 
+ *
  * @author SkyKing_PX
  */
 public class CommandRegistry {
     /**
      * Registers and configures all slash commands for the bot.
-     * 
+     *
      * @return List of CommandData objects to register with Discord
      */
     public static List<CommandData> registerCommands() {
         CommandData faq = Commands.slash("faq", "Suggests a user to read the FAQ Channel")
-                .addOptions(
-                        new OptionData(OptionType.USER, "user", "Optionally choose if you want to ping a member", false)
-                );
+            .addOptions(
+                new OptionData(OptionType.USER, "user", "Optionally choose if you want to ping a member", false)
+            );
 
         CommandData info = Commands.slash("info", "Shows some useful information about the bot");
 
@@ -62,6 +62,11 @@ public class CommandRegistry {
                 new OptionData(OptionType.INTEGER, "count", "Maximum number of messages to delete (optional, no limit by default)", false)
             );
 
-        return List.of(faq, info, close, sendFaq, reload, shortcut, deleteMessages);
+        CommandData listRequests = Commands.slash("list-requests", "Lists all feature requests, sorted by most votes")
+            .addOptions(
+                new OptionData(OptionType.INTEGER, "page", "Page number to display (optional, defaults to 1)", false)
+            );
+
+        return List.of(faq, info, close, sendFaq, reload, shortcut, deleteMessages, listRequests);
     }
 }

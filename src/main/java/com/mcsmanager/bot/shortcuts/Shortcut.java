@@ -30,9 +30,9 @@ public class Shortcut {
     /**
      * Creates a new Shortcut.
      *
-     * @param id The command ID (used as /shortcut execute <id>)
-     * @param description The description of what this shortcut does
-     * @param messageTitle The title of the embed message
+     * @param id                 The command ID (used as /shortcut execute <id>)
+     * @param description        The description of what this shortcut does
+     * @param messageTitle       The title of the embed message
      * @param messageDescription The description text of the embed message
      */
     public Shortcut(String id, String description, String messageTitle, String messageDescription) {
@@ -80,10 +80,10 @@ public class Shortcut {
     @Override
     public String toString() {
         return "Shortcut{" +
-                "id='" + id + '\'' +
-                ", description='" + description + '\'' +
-                ", messageTitle='" + messageTitle + '\'' +
-                ", messageDescription='" + messageDescription + '\'' +
-                '}';
+            "id='" + id + '\'' +
+            ", description='" + description + '\'' +
+            ", messageTitle='" + messageTitle + '\'' +
+            ", messageDescription='" + messageDescription + '\'' +
+            '}';
     }
 }

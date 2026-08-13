@@ -22,14 +22,14 @@ import java.io.IOException;
 /**
  * Event listener for bug report forum thread management.
  * Automatically adds close buttons to new bug report threads and handles closure.
- * 
+ *
  * @author SkyKing_PX
  */
 public class BugReportListener extends ListenerAdapter {
     /**
      * Handles new thread creation in bug report forums.
      * Automatically adds a close button to bug report threads.
-     * 
+     *
      * @param event The channel creation event
      */
     @Override
@@ -47,19 +47,21 @@ public class BugReportListener extends ListenerAdapter {
         }
 
         MessageEmbed embed = EmbedUtils.createSuccess()
-                .addField("Is your Issue resolved?", "When your issue is resolved, please press on the `Close` Button below.", false)
-                .build();
+            .addField("Is your Issue resolved?", "When your issue is resolved, please press on the `Close` Button below.", false)
+            .build();
 
+        LogUtils.logInfo("Adding bug report close button", "thread=" + event.getChannel().getId());
         event.getChannel().asThreadChannel().sendMessageEmbeds(embed)
-                .addComponents(ActionRow.of(
-                        Button.success("bugReport:close:" + event.getChannel().getId(), "Close").withEmoji(Emoji.fromUnicode("✅"))
-                )).queue();
+            .addComponents(ActionRow.of(
+                Button.success("bugReport:close:" + event.getChannel().getId(), "Close").withEmoji(Emoji.fromUnicode("✅"))
+            )).queue(success -> LogUtils.logDebug("Bug report close button added", event.getChannel().getId()),
+                error -> LogUtils.logException("Failed to add bug report close button", error));
     }
 
     /**
      * Handles button interactions for bug report thread closure.
      * Validates the interaction and delegates to CloseHandler for confirmation.
-     * 
+     *
      * @param event The button interaction event
      */
     @Override
@@ -67,14 +69,16 @@ public class BugReportListener extends ListenerAdapter {
         if (!event.getComponentId().startsWith("bugReport:close:")) return;
         if (!event.isFromGuild() || !event.getChannel().getType().isThread()) {
             event.replyEmbeds(EmbedUtils.createSimpleError("❌ This button only works inside selected forum threads."))
-                    .setEphemeral(true).queue();
+                .setEphemeral(true).queue();
             return;
         }
 
         ThreadChannel thread = event.getChannel().asThreadChannel();
+        LogUtils.logInfo("Bug report close button clicked", "user=" + event.getUser().getId() + ", thread=" + thread.getId());
         Member invoker = event.getMember();
         Guild guild = event.getGuild();
 
-        event.deferReply(true).queue(hook -> CloseHandler.sendConfirmation(thread, invoker, guild, hook));
+        event.deferReply(true).queue(hook -> CloseHandler.sendConfirmation(thread, invoker, guild, hook),
+            error -> LogUtils.logException("Failed to defer bug report close confirmation", error));
     }
 }

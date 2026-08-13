@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * Handles the /sendfaq command for posting FAQ entries to the configured channel.
  * Restricted to bot owner only.
- * 
+ *
  * @author SkyKing_PX
  */
 public class FaqHandler extends ListenerAdapter {
@@ -23,7 +23,7 @@ public class FaqHandler extends ListenerAdapter {
     /**
      * Handles the /sendfaq slash command.
      * Posts all configured FAQ entries to the FAQ channel.
-     * 
+     *
      * @param event The slash command interaction event
      */
     @Override
@@ -35,7 +35,7 @@ public class FaqHandler extends ListenerAdapter {
                 if (!event.getUser().getId().equals(ownerId)) {
                     LogUtils.logCommandFailure("sendfaq", event.getUser().getId(), "Unauthorized access attempt");
                     event.getHook().sendMessageEmbeds(EmbedUtils.createSimpleError("❌ You are not authorized to use this command."))
-                            .setEphemeral(true).queue();
+                        .setEphemeral(true).queue();
                     return;
                 }
             } catch (IOException e) {
@@ -50,7 +50,7 @@ public class FaqHandler extends ListenerAdapter {
                 if (faqChannel == null) {
                     LogUtils.logWarning("FAQ Channel not found");
                     event.getHook().sendMessageEmbeds(EmbedUtils.createSimpleError("❌ FAQ channel not found!"))
-                            .setEphemeral(true).queue();
+                        .setEphemeral(true).queue();
                     return;
                 }
 
@@ -67,7 +67,7 @@ public class FaqHandler extends ListenerAdapter {
                     // Send new FAQ entries after deleting old ones
                     for (FaqEntry entry : config.getFaq().getFaq_entries()) {
                         var embed = EmbedUtils.createDefault()
-                                .setTitle(MessageHandler.parseEmojis(event.getJDA(), entry.getQuestion()));
+                            .setTitle(MessageHandler.parseEmojis(event.getJDA(), entry.getQuestion()));
 
                         if (entry.getAnswer() != null && !entry.getAnswer().isEmpty()) {
                             embed.setDescription(MessageHandler.parseEmojis(event.getJDA(), entry.getAnswer()));
@@ -83,16 +83,16 @@ public class FaqHandler extends ListenerAdapter {
                     }
 
                     event.getHook().sendMessageEmbeds(EmbedUtils.createSimpleSuccess("✅ FAQ messages sent!"))
-                            .setEphemeral(true).queue();
+                        .setEphemeral(true).queue();
                 }, throwable -> {
                     LogUtils.logException("Error while retrieving messages from FAQ channel", throwable);
                     event.getHook().sendMessageEmbeds(EmbedUtils.createSimpleError("❌ Failed to delete old FAQ messages."))
-                            .setEphemeral(true).queue();
+                        .setEphemeral(true).queue();
                 });
             } catch (IOException e) {
                 LogUtils.logException("Error while sending FAQ messages", e);
                 event.getHook().sendMessageEmbeds(EmbedUtils.createSimpleError("❌ Failed to send FAQ messages."))
-                        .setEphemeral(true).queue();
+                    .setEphemeral(true).queue();
             }
         }
     }

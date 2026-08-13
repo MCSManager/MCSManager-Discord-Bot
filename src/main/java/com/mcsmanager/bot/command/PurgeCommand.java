@@ -28,11 +28,13 @@ public class PurgeCommand extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if (!event.getName().equals("purge")) return;
+        LogUtils.logCommand("purge", event.getUser().getId());
 
         // Check if user has moderator permissions
         if (!isModerator(event)) {
+            LogUtils.logCommandFailure("purge", event.getUser().getId(), "Unauthorized access attempt");
             event.replyEmbeds(EmbedUtils.createSimpleError("❌ You don't have permission to use this command."))
-                    .setEphemeral(true).queue();
+                .setEphemeral(true).queue();
             return;
         }
 
@@ -40,7 +42,7 @@ public class PurgeCommand extends ListenerAdapter {
         User targetUser = event.getOption("user", null, net.dv8tion.jda.api.interactions.commands.OptionMapping::getAsUser);
         if (targetUser == null) {
             event.replyEmbeds(EmbedUtils.createSimpleError("❌ User not found."))
-                    .setEphemeral(true).queue();
+                .setEphemeral(true).queue();
             return;
         }
 
@@ -58,6 +60,7 @@ public class PurgeCommand extends ListenerAdapter {
 
         // Get the count argument (optional)
         final Integer countArg = event.getOption("count", null, opt -> opt.getAsInt() > 0 ? opt.getAsInt() : null);
+        LogUtils.logInfo("Starting purge", "user=" + event.getUser().getId() + ", target=" + targetUser.getId());
 
         event.deferReply().queue(hook -> {
             try {
@@ -68,9 +71,9 @@ public class PurgeCommand extends ListenerAdapter {
                 }
                 deleteUserMessagesAsync(guild, targetUser, daysArg, targetChannel, countArg, deletedCount -> {
                     net.dv8tion.jda.api.EmbedBuilder embed = EmbedUtils.createSuccess()
-                            .setTitle("✅ Messages Deleted")
-                            .setDescription("Successfully deleted messages from **" + targetUser.getAsMention() + "**")
-                            .addField("Messages Deleted", String.valueOf(deletedCount), false);
+                        .setTitle("✅ Messages Deleted")
+                        .setDescription("Successfully deleted messages from **" + targetUser.getAsMention() + "**")
+                        .addField("Messages Deleted", String.valueOf(deletedCount), false);
 
                     if (targetChannel != null) {
                         embed.addField("Channel", targetChannel.getAsMention(), false);
@@ -88,27 +91,27 @@ public class PurgeCommand extends ListenerAdapter {
 
                     event.getHook().editOriginalEmbeds(embed.build()).queue();
                     LogUtils.logInfo("Deleted " + deletedCount + " messages from " + targetUser.getAsTag() +
-                            (daysArg != null ? " from last " + daysArg + " days" : " (all messages)") +
-                            (targetChannel != null ? " in channel " + targetChannel.getName() : "") +
-                            (countArg != null ? " (limit: " + countArg + ")" : ""));
+                        (daysArg != null ? " from last " + daysArg + " days" : " (all messages)") +
+                        (targetChannel != null ? " in channel " + targetChannel.getName() : "") +
+                        (countArg != null ? " (limit: " + countArg + ")" : ""));
                 });
 
             } catch (Exception e) {
                 LogUtils.logException("Error deleting messages", e);
                 event.getHook().editOriginalEmbeds(EmbedUtils.createSimpleError("❌ An error occurred while deleting messages.")).queue();
             }
-        });
+        }, error -> LogUtils.logException("Failed to defer /purge reply", error));
     }
 
     /**
      * Deletes all messages from a specific user in the guild.
      *
-     * @param guild The guild to search in
-     * @param targetUser The user whose messages to delete
-     * @param daysArg The number of days to go back, or null to delete all messages
+     * @param guild         The guild to search in
+     * @param targetUser    The user whose messages to delete
+     * @param daysArg       The number of days to go back, or null to delete all messages
      * @param targetChannel The specific channel to scan, or null to scan all channels
-     * @param countArg The maximum number of messages to delete, or null for no limit
-     * @param onComplete Callback to execute when deletion is complete
+     * @param countArg      The maximum number of messages to delete, or null for no limit
+     * @param onComplete    Callback to execute when deletion is complete
      */
     private void deleteUserMessagesAsync(Guild guild, User targetUser, Integer daysArg, TextChannel targetChannel, Integer countArg, java.util.function.Consumer<Integer> onComplete) {
         Thread deletionThread = new Thread(() -> {
@@ -221,6 +224,7 @@ public class PurgeCommand extends ListenerAdapter {
             }
 
             // Call the callback with the result
+            LogUtils.logInfo("Purge scan completed", "target=" + targetUser.getId() + ", deleted=" + totalDeleted);
             onComplete.accept(totalDeleted);
         });
 
@@ -250,7 +254,6 @@ public class PurgeCommand extends ListenerAdapter {
 
         List<String> modRolesList = List.of(modRoleIds);
         return event.getMember().getRoles().stream()
-                .anyMatch(role -> modRolesList.contains(role.getId()));
+            .anyMatch(role -> modRolesList.contains(role.getId()));
     }
 }
-

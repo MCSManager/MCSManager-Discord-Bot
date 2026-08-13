@@ -1,22 +1,14 @@
 package com.mcsmanager.bot;
 
-import com.mcsmanager.bot.command.CloseCommand;
-import com.mcsmanager.bot.command.PurgeCommand;
-import com.mcsmanager.bot.command.FAQCommand;
-import com.mcsmanager.bot.command.InfoCommand;
-import com.mcsmanager.bot.command.ShortcutCommand;
+import com.mcsmanager.bot.command.*;
 import com.mcsmanager.bot.faq.FaqHandler;
 import com.mcsmanager.bot.listener.BugReportListener;
 import com.mcsmanager.bot.listener.SuggestionListener;
 import com.mcsmanager.bot.listener.SupportListener;
 import com.mcsmanager.bot.listener.ThreadDeleteListener;
 import com.mcsmanager.bot.shortcuts.ShortcutStorage;
-import com.mcsmanager.bot.util.CloseHandler;
-import com.mcsmanager.bot.util.InactivityChecker;
-import com.mcsmanager.bot.util.LogUploader;
-import com.mcsmanager.bot.util.LogUtils;
-import com.mcsmanager.bot.util.Reload;
 import com.mcsmanager.bot.storage.VoteStorage;
+import com.mcsmanager.bot.util.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -26,17 +18,23 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 /**
  * Main Bot class for the MCSM Discord Bot Discord application.
  * This class initializes the bot, registers event listeners, and configures JDA.
- * 
+ *
  * @author SkyKing_PX
  */
 public class Bot {
-    /** Current version of the bot */
-    public static final String VERSION = "1.5.0";
+    /**
+     * Current version of the bot
+     */
+    public static final String VERSION = "1.6.0";
 
-    /** Static JDA instance for accessing the bot from anywhere */
+    /**
+     * Static JDA instance for accessing the bot from anywhere
+     */
     private static JDA jda;
 
-    /** Storage for vote data across suggestion forums */
+    /**
+     * Storage for vote data across suggestion forums
+     */
     private static VoteStorage voteStorage;
 
     /**
@@ -63,7 +61,7 @@ public class Bot {
 
     /**
      * Gets the vote storage instance for managing suggestion votes.
-     * 
+     *
      * @return The vote storage instance
      */
     public static VoteStorage getVoteStorage() {
@@ -82,7 +80,7 @@ public class Bot {
     /**
      * Main entry point for the MCSM Discord Bot application.
      * Initializes storage, configures JDA, and registers all event listeners.
-     * 
+     *
      * @param args Command line arguments (not used)
      * @throws Exception If any error occurs during initialization
      */
@@ -97,26 +95,27 @@ public class Bot {
         }
 
         jda = JDABuilder.createDefault(Config.get().getBot().getToken())
-                .addEventListeners(
-                        new InfoCommand(),
-                        new FAQCommand(),
-                        new LogUploader(),
-                        new Listener(),
-                        new CloseCommand(),
-                        new PurgeCommand(),
-                        new ShortcutCommand(),
-                        new SuggestionListener(Bot.getVoteStorage()),
-                        new BugReportListener(),
-                        new SupportListener(),
-                        new CloseHandler(),
-                        new FaqHandler(),
-                        new Reload(),
-                        new ThreadDeleteListener(),
-                        new InactivityChecker())
-                .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-                .setActivity(Activity.playing(activity))
-                .setStatus(OnlineStatus.ONLINE)
-                .build();
+            .addEventListeners(
+                new InfoCommand(),
+                new FAQCommand(),
+                new LogUploader(),
+                new Listener(),
+                new CloseCommand(),
+                new PurgeCommand(),
+                new ShortcutCommand(),
+                new ListRequestsCommand(Bot.getVoteStorage()),
+                new SuggestionListener(Bot.getVoteStorage()),
+                new BugReportListener(),
+                new SupportListener(),
+                new CloseHandler(),
+                new FaqHandler(),
+                new Reload(),
+                new ThreadDeleteListener(),
+                new InactivityChecker())
+            .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+            .setActivity(Activity.playing(activity))
+            .setStatus(OnlineStatus.DO_NOT_DISTURB)
+            .build();
 
         // Start the inactivity checker after JDA is built
         InactivityChecker.start(jda);
